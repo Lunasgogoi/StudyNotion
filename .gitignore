@@ -1,4 +1,5 @@
 # Ignore files
+.env
 *.log
 *.lock
 *.cache
@@ -17,4 +18,5 @@
 *.vsdx
 *.vsps
 *__pycache__/
-.env
+
+
