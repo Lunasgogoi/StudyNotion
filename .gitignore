@@ -1,0 +1,20 @@
+# Ignore files
+*.log
+*.lock
+*.cache
+*.local
+*.DS_Store
+*.db
+*.dbmdl
+*.dbx
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.swp
+*.swo
+*.swx
+*.vs
+*.vsdx
+*.vsps
+*__pycache__/
+.env
