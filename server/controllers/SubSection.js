@@ -1,18 +1,21 @@
 const SubSection = require("../models/SubSection");
 const Section = require("../models/Section");
-const { uploadImgaeToCloudinary } = require("../utils/imageUploader");
+const { uploadImageToCloudinary } = require("../utils/imageUploader");
 
 exports.createSubSection = async (req, res) => {
     try {
+
+        // console.log("Request body:", req.body);
+        console.log("FILES:", req.files);
 
         //fetch data from req body
         const { sectionId, title, timeDuration, description } = req.body;
 
         //extract file/video
-        const video = req.files.videoFile;
+        const video = req.files?.video;
 
         //validation
-        if (!sectionId || !title || !timeDuration || !description || !video) {
+        if (!sectionId || !title || !timeDuration || !description  || !video) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required",
@@ -20,7 +23,7 @@ exports.createSubSection = async (req, res) => {
         }
 
         //upload video to cloudinary -> we get secure url
-        const uploadDetails = await uploadImgaeToCloudinary(
+        const uploadDetails = await uploadImageToCloudinary(
             video,
             process.env.FOLDER_NAME
         )
@@ -54,9 +57,11 @@ exports.createSubSection = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("CREATE SUB-SECTION ERROR:", error);
         return res.status(500).json({
             success: false,
             message: "Error in creating sub-section",
+            error: error.message,
         });
     }
 } 

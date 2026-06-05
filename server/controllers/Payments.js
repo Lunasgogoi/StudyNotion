@@ -4,7 +4,7 @@ const Course = require("../models/Course");
 const User = require("../models/User");
 const mailSender = require("../utils/mailSender");
 const { courseEnrollmentEmail } = require("../mail/templates/courseEnrollmentEmail");
-const { default: orders } = require("razorpay/dist/types/orders");
+const Razorpay = require("razorpay");
 const crypto = require('crypto');
 
 //capture the payment and initiate the Razorpay order 
@@ -91,7 +91,7 @@ exports.capturePayment = async (req, res) => {
 };
 
 //verify Signature
-const crypto = require("crypto");
+
 
 exports.verifySignature = async (req, res) => {
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;

@@ -1,0 +1,38 @@
+// src/services/apis.js
+const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:4000/api/v1";
+
+// COURSE ENDPOINTS
+export const courseEndpoints = {
+  GET_ALL_COURSE_API: BASE_URL + "/course/getAllCourses",
+  COURSE_CATEGORIES_API: BASE_URL + "/course/showAllCategories",
+  GET_ALL_INSTRUCTOR_COURSES_API: BASE_URL + "/course/getInstructorCourses",
+  CREATE_SECTION_API: BASE_URL + "/course/addSection",
+  CREATE_COURSE_API: BASE_URL + "/course/createCourse",
+  CREATE_SUBSECTION_API: BASE_URL + "/course/addSubSection",
+  DELETE_COURSE_API: BASE_URL + "/course/deleteCourse",
+  COURSE_DETAILS_API: BASE_URL + "/course/getCourseDetails",
+};
+
+// RATINGS AND REVIEWS ENDPOINTS
+export const ratingsEndpoints = {
+  REVIEWS_DETAILS_API: BASE_URL + "/course/getReviews",
+};
+
+// AUTH ENDPOINTS (You might already have these somewhere, but good to move them here!)
+export const endpoints = {
+  SENDOTP_API: BASE_URL + "/auth/sendotp",
+  SIGNUP_API: BASE_URL + "/auth/signup",
+  LOGIN_API: BASE_URL + "/auth/login",
+};
+
+// SETTINGS PAGE ENDPOINTS
+export const settingsEndpoints = {
+  UPDATE_DISPLAY_PICTURE_API: BASE_URL + "/profile/updateDisplayPicture",
+  UPDATE_PROFILE_API: BASE_URL + "/profile/updateProfile",
+  CHANGE_PASSWORD_API: BASE_URL + "/auth/changepassword",
+  DELETE_PROFILE_API: BASE_URL + "/profile/deleteProfile",
+}
+
+export const catalogData = {
+  CATALOGPAGEDATA_API: BASE_URL + "/course/getCategoryPageDetails",
+}

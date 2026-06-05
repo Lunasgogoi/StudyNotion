@@ -1,4 +1,4 @@
-export function courseEnrollmentEmail(courseName, name) {
+function courseEnrollmentEmail(courseName, name) {
   return `<!DOCTYPE html>
 <html>
 
@@ -99,3 +99,5 @@ export function courseEnrollmentEmail(courseName, name) {
 
 </html>`;
 }
+
+module.exports = courseEnrollmentEmail

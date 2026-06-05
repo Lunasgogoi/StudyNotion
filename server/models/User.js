@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-    name: {
+    firstName: {
         type: String,
         required: true,
         trim: true,
@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
         required: true,
     },
     additionalDetails: {
-        type: mongoose.Schema.Types.objectId,
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: "Profile",
     },
@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema({
             ref: "Course",
         }
     ],
-    Image: {
+    image: {
         type: String, //url of the image
         required: true,
     },

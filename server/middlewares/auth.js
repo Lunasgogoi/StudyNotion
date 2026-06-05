@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 const User = require('../models/User');
 
 //auth
@@ -7,8 +6,8 @@ exports.auth = async (req, res, next) => {
     try {
         //fetch token from header
         const token = req.cookies.token || 
-        req.header("Authorization").replace("Bearer ", "") || 
-        req. body.token;
+              req.header("Authorization")?.replace("Bearer ", "") || 
+              req.body.token;
 
         //if token missing , then return response
         if (!token) {
@@ -27,9 +26,13 @@ exports.auth = async (req, res, next) => {
 
         } catch (error) {
             console.log("Error in verifying token", error);
+            const message = error.name === "TokenExpiredError"
+                ? "Session expired. Please log in again."
+                : "Invalid token. Please log in again.";
+
             return res.status(401).json({
                 success: false,
-                message: "Unauthorized",
+                message,
             });
         }
         next();
@@ -47,7 +50,7 @@ exports.auth = async (req, res, next) => {
 
 exports.isStudent = async (req, res, next) => {
     try {
-        if(req.user.accountType !== "Student") {
+        if(req.user.accountType !== "User" && req.user.accountType !== "Student") {
             return res.status(403).json({
                 success: false,
                 message: "Access denied. Only students are allowed.",

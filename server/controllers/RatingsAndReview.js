@@ -1,21 +1,23 @@
 const RatingAndReview = require("../models/RatingAndReview");
 const Course = require("../models/Course");
 
+
 //createRating
 exports.createRating = async (req, res) => {
     try {
-        //get userId
+
+        // get user id
         const userId = req.user.id;
 
-        //fetch data from body
+        // fetch data from body
         const { rating, review, courseId } = req.body;
 
-        //check if user is enrolled or not
-        const courseDetails = await Course.findOne(
-            {
-                _id: courseId,
-                studentsEnrolled: { $elemMatch: { $eq: userId } },
-            });
+        console.log(req.user);
+        console.log(userId);
+        console.log(courseId);
+
+        // check if course exists
+        const courseDetails = await Course.findById(courseId);
 
         if (!courseDetails) {
             return res.status(404).json({
@@ -24,19 +26,45 @@ exports.createRating = async (req, res) => {
             });
         }
 
-        //check if user has already submitted rating or not
+        // check if user is enrolled
+        const isEnrolled = courseDetails.studentsEnrolled
+            .map(id => id.toString())
+            .includes(userId.toString());
+
+        console.log("courseDetails:", courseDetails._id.toString());
+        console.log("studentsEnrolled:", courseDetails.studentsEnrolled);
+        console.log("userId:", userId);
+        console.log("isEnrolled:", isEnrolled);
+
+        if (!isEnrolled) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not enrolled in this course",
+            });
+        }
+
+        // check if user already reviewed
         const alreadyReviewed = await RatingAndReview.findOne({
             user: userId,
             course: courseId,
         });
 
+        // if already reviewed -> update existing review
         if (alreadyReviewed) {
+
             alreadyReviewed.rating = rating;
             alreadyReviewed.review = review;
+
             await alreadyReviewed.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Review updated successfully",
+                data: alreadyReviewed,
+            });
         }
 
-        //create rating and review
+        // create new review
         const ratingReview = await RatingAndReview.create({
             user: userId,
             course: courseId,
@@ -44,18 +72,22 @@ exports.createRating = async (req, res) => {
             review,
         });
 
-        //update course rating
+        // push review into course
         const updatedCourse = await Course.findByIdAndUpdate(
+            courseId,
             {
                 $push: {
                     ratingsAndReviews: ratingReview._id,
-                }
+                },
             },
-            { new: true }
+            {
+                new: true,
+            }
         );
+
         console.log(updatedCourse);
-        
-        //return response
+
+        // return response
         return res.status(200).json({
             success: true,
             message: "Rating and review created successfully",
@@ -63,13 +95,16 @@ exports.createRating = async (req, res) => {
         });
 
     } catch (err) {
-        console.log(err);
+
+        console.log("Error in createRating:", err);
+
         return res.status(500).json({
             success: false,
             message: "Error in creating rating and review",
-        })
+            error: err.message,
+        });
     }
-}
+};
 
 //getAverageRating
 exports.getAverageRating = async (req, res) => {
@@ -129,17 +164,23 @@ exports.getAllRatingsAndReviews = async (req, res) => {
                 select: "firstName lastName image email",
             })
             .populate({
-                path:"course",
-                select:"courseName",
+                path: "course",
+                select: "courseName",
             })
 
-            return  res.status(200).json({
-                success: true,
-                message: "All reviews fetched successfully",
-                data: allReviews,
-            });
+        return res.status(200).json({
+            success: true,
+            message: "All reviews fetched successfully",
+            data: allReviews,
+        });
 
     } catch (err) {
+    console.log(err);
 
-    }
+    return res.status(500).json({
+        success: false,
+        message: "Failed to fetch reviews",
+        error: err.message,
+    });
+}
 }

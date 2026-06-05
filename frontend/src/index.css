@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fonts */
+  --font-inter: "Inter", sans-serif;
+  --font-edu-sa: "Edu SA Beginner", cursive;
+  --font-mono: "Roboto Mono", monospace;
+
+  /* Max widths */
+  --width-maxContent: 1260px;
+  --width-maxContentTab: 650px;
+
+  /* --- Colors --- */
+  /* richblack */
+  --color-richblack-5: #F1F2FF;
+  --color-richblack-25: #DBDDEA;
+  --color-richblack-50: #C5C7D4;
+  --color-richblack-100: #AFB2BF;
+  --color-richblack-200: #999DAA;
+  --color-richblack-300: #838894;
+  --color-richblack-400: #6E727F;
+  --color-richblack-500: #585D69;
+  --color-richblack-600: #424854;
+  --color-richblack-700: #2C333F;
+  --color-richblack-800: #161D29;
+  --color-richblack-900: #000814;
+
+  /* richblue */
+  --color-richblue-5: #ECF5FF;
+  --color-richblue-25: #C6D6E1;
+  --color-richblue-50: #A0B7C3;
+  --color-richblue-100: #7A98A6;
+  --color-richblue-200: #537988;
+  --color-richblue-300: #2D5A6A;
+  --color-richblue-400: #073B4C;
+  --color-richblue-500: #063544;
+  --color-richblue-600: #042E3B;
+  --color-richblue-700: #032833;
+  --color-richblue-800: #01212A;
+  --color-richblue-900: #001B22;
+
+  /* blue */
+  --color-blue-5: #EAF5FF;
+  --color-blue-25: #B4DAEC;
+  --color-blue-50: #7EC0D9;
+  --color-blue-100: #47A5C5;
+  --color-blue-200: #118AB2;
+  --color-blue-300: #0F7A9D;
+  --color-blue-400: #0C6A87;
+  --color-blue-500: #0A5A72;
+  --color-blue-600: #074B5D;
+  --color-blue-700: #053B48;
+  --color-blue-800: #022B32;
+  --color-blue-900: #001B1D;
+
+  /* pink */
+  --color-pink-100: #F37290;
+  --color-pink-200: #EF476F;
+  --color-pink-300: #D43D63;
+  --color-pink-400: #BA3356;
+  --color-pink-500: #9F294A;
+
+  /* yellow */
+  --color-yellow-25: #FFF970;
+  --color-yellow-50: #FFF970;
+  --color-yellow-100: #FFE83D;
+  --color-yellow-200: #FFD60A;
+  --color-yellow-300: #E7C009;
+  --color-yellow-400: #CFAB08;
+  --color-yellow-500: #B69507;
+
+  /* pure-greys */
+  --color-pure-greys-5: #F9F9F9;
+  --color-pure-greys-25: #E2E2E2;
+  --color-pure-greys-50: #CCCCCC;
+  --color-pure-greys-100: #B5B5B5;
+  --color-pure-greys-200: #9E9E9E;
+  --color-pure-greys-300: #888888;
+  --color-pure-greys-400: #717171;
+  --color-pure-greys-500: #5B5B5B;
+  --color-pure-greys-600: #444444;
+  --color-pure-greys-700: #2D2D2D;
+  --color-pure-greys-800: #171717;
+  --color-pure-greys-900: #141414;
+}
+
+/* --- Global Resets & Base Styles --- */
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--color-richblack-900);
+    color: var(--color-richblack-5);
+    font-family: var(--font-inter);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Professional Dark Theme Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-richblack-900);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-richblack-500);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-richblack-300);
+  }
+}

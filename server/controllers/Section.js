@@ -19,15 +19,16 @@ exports.createSection = async (req, res) => {
         const updatedCourse = await Course.findByIdAndUpdate(
             courseId,
             { $push: { courseContent: newSection._id } },
-            { new: true }
+            { returnDocument: "after" }
+
         )
-        .populate({
-            path: "courseContent",
-            populate: {
-                path: "subSection", // This handles the nested populate
-            },
-        })
-        .exec();
+            .populate({
+                path: "courseContent",
+                populate: {
+                    path: "subSection", // This handles the nested populate
+                },
+            })
+            .exec();
 
         res.status(200).json({
             success: true,
@@ -58,7 +59,8 @@ exports.updateSection = async (req, res) => {
         const section = await Section.findByIdAndUpdate(
             sectionId,
             { sectionName },
-            { new: true }
+            { returnDocument: "after" }
+
         );
 
         res.status(200).json({
@@ -76,6 +78,9 @@ exports.updateSection = async (req, res) => {
 
 exports.deleteSection = async (req, res) => {
     try {
+
+        console.log("Request body for deleteSection:", req.body); // Debugging log to check incoming data
+
         const { sectionId, courseId } = req.body; // Usually need courseId to return updated course
 
         // Optional: Delete associated sub-sections first if they exist
@@ -90,7 +95,7 @@ exports.deleteSection = async (req, res) => {
         const updatedCourse = await Course.findByIdAndUpdate(
             courseId,
             { $pull: { courseContent: sectionId } },
-            { new: true }
+            { returnDocument: "after" }
         );
 
         res.status(200).json({

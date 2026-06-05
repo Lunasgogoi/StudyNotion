@@ -1,35 +1,36 @@
 const Profile = require("../models/Profile");
 const User = require("../models/User");
+const Course = require("../models/Course"); // needed for enrolled courses
 
+
+// ================================
+// UPDATE PROFILE
+// ================================
 exports.updateProfile = async (req, res) => {
     try {
-        //get data
         const { dateOfBirth = "", about = "", contactNumber = "", gender } = req.body;
 
-        //get userID
         const id = req.user.id;
 
-        //validation
-        if (!contactNumber || !gender || !id) {
-            return res.status(404).json({
+        if (!contactNumber || !gender) {
+            return res.status(400).json({
                 success: false,
-                message: "User not found",
+                message: "All required fields missing",
             });
         }
 
-        //find profile
         const userDetails = await User.findById(id);
         const profileId = userDetails.additionalDetails;
+
         const profileDetails = await Profile.findById(profileId);
 
-        //update profile
         profileDetails.dateOfBirth = dateOfBirth;
         profileDetails.about = about;
         profileDetails.contactNumber = contactNumber;
         profileDetails.gender = gender;
+
         await profileDetails.save();
 
-        //return response
         return res.status(200).json({
             success: true,
             message: "Profile updated successfully",
@@ -37,23 +38,22 @@ exports.updateProfile = async (req, res) => {
         });
 
     } catch (error) {
-        console.log("Error in updateProfile middleware", error);
+        console.log("Error in updateProfile:", error);
         return res.status(500).json({
             success: false,
-            message: "user role cannot be verified",
+            message: error.message,
         });
     }
-}
+};
 
-//explore->how can we schedule this delete operation crone job
 
-//deleteAccount
+// ================================
+// DELETE ACCOUNT
+// ================================
 exports.deleteAccount = async (req, res) => {
     try {
-        //get ID
         const id = req.user.id;
 
-        //valiation
         const userDetails = await User.findById(id);
         if (!userDetails) {
             return res.status(404).json({
@@ -62,63 +62,163 @@ exports.deleteAccount = async (req, res) => {
             });
         }
 
-        //delete profile
-        await Profile.findByIdAndDelete({ _id: userDetails.additionalDetails });
+        // delete profile
+        await Profile.findByIdAndDelete(userDetails.additionalDetails);
 
-        //delete user
-        await User.findByIdAndDelete({ _id: id });
+        // remove user from enrolled courses
+        await Course.updateMany(
+            { studentsEnrolled: id },
+            { $pull: { studentsEnrolled: id } }
+        );
 
-        //un-enroll user from all enrolled courses
-        await User.updateMany({
-            enrolledCourses: id
-        },
-            {
-                $pull:
-                {
-                    enrolledCourses: id
+        // delete user
+        await User.findByIdAndDelete(id);
 
-                }
-            });
-
-        //return response
         return res.status(200).json({
             success: true,
             message: "Account deleted successfully",
         });
 
     } catch (error) {
-        console.log("Error in deleteAccount middleware", error);
+        console.log("Error in deleteAccount:", error);
         return res.status(500).json({
             success: false,
-            message: "user role cannot be verified",
+            message: error.message,
         });
     }
-}
+};
 
-//get all details
 
+// ================================
+// GET ALL USER DETAILS
+// ================================
 exports.getAllUserDetails = async (req, res) => {
     try {
-        //get ID
         const id = req.user.id;
 
-        // get user details
-        const userDetails = await User.findById(id).
-            populate("additionalDetails");
-        //validation
-        
-        //return response
+        const userDetails = await User.findById(id)
+            .populate("additionalDetails");
+
         return res.status(200).json({
             success: true,
             message: "User details fetched successfully",
-            data: userDetails
-        })
-        
+            data: userDetails,
+        });
+
     } catch (error) {
-        console.log("Error in getAllUserDetails middleware", error);
+        console.log("Error in getAllUserDetails:", error);
         return res.status(500).json({
             success: false,
-            message: "user role cannot be verified",
+            message: error.message,
         });
     }
-}
+};
+
+
+// ================================
+// UPDATE DISPLAY PICTURE (MISSING)
+// ================================
+exports.updateDisplayPicture = async (req, res) => {
+    try {
+        const id = req.user.id;
+
+        console.log("FILES:", req.files);
+
+        // Validation: Check if file is uploaded
+        if (!req.files || !req.files.displayPicture) {
+            return res.status(400).json({
+                success: false,
+                message: "No file uploaded or file key is incorrect",
+            });
+        }
+
+        const displayPicture = req.files.displayPicture;
+
+        // Upload to Cloudinary
+        const { uploadImageToCloudinary } = require("../utils/imageUploader");
+        const uploadDetails = await uploadImageToCloudinary(
+            displayPicture,
+            process.env.FOLDER_NAME
+        );
+
+        // Update User AND Populate
+        const updatedUser = await User.findByIdAndUpdate(
+            id,
+            { image: uploadDetails.secure_url },
+            { new: true } // 🔥 Fixed Mongoose syntax
+        ).populate("additionalDetails"); // 🔥 Added populate so frontend doesn't break!
+
+        return res.status(200).json({
+            success: true,
+            message: "Display picture updated successfully",
+            data: updatedUser,
+        });
+
+    } catch (error) {
+        console.log("Error in updateDisplayPicture:", error);
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+// ================================
+// GET ENROLLED COURSES (MISSING)
+// ================================
+exports.getEnrolledCourse = async (req, res) => {
+    try {
+        const id = req.user.id;
+
+        const userDetails = await User.findById(id)
+            .populate({
+                path: "enrolledCourses",
+                populate: {
+                    path: "instructor",
+                },
+            });
+
+        return res.status(200).json({
+            success: true,
+            message: "Enrolled courses fetched successfully",
+            data: userDetails.enrolledCourses,
+        });
+
+    } catch (error) {
+        console.log("Error in getEnrolledCourse:", error);
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+// for the instructor dashboard, we need to fetch all courses created by the instructor and also calculate the total students enrolled and total amount generated for each course. This will help the instructor to get an overview of their courses and earnings.
+
+exports.instructorDashboard = async (req, res) => {
+  try {
+    const courseDetails = await Course.find({ instructor: req.user.id });
+
+    const courseData = courseDetails.map((course) => {
+      const totalStudentsEnrolled = course.studentsEnrolled.length;
+      const totalAmountGenerated = totalStudentsEnrolled * course.price;
+
+      // Create a new object with the additional fields
+      const courseDataWithStats = {
+        _id: course._id,
+        courseName: course.courseName,
+        courseDescription: course.courseDescription,
+        totalStudentsEnrolled,
+        totalAmountGenerated,
+      };
+      return courseDataWithStats;
+    });
+
+    res.status(200).json({
+      courses: courseData,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

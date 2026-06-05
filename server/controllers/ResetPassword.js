@@ -1,17 +1,18 @@
 const User = require("../models/User");
 const mailSender = require("../utils/mailSender");
+const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 
 
-
-//resetPasswordToken
+// ========================
+// RESET PASSWORD TOKEN
+// ========================
 exports.resetPasswordToken = async (req, res) => {
     try {
-        //fetch email from req.body
         const { email } = req.body;
 
-        //check user for this email , email validation
-
-        const user = await User.findOne({ email: email })
+        // check user
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -19,55 +20,48 @@ exports.resetPasswordToken = async (req, res) => {
             });
         }
 
-        //generate token
+        // generate token
         const token = crypto.randomBytes(32).toString("hex");
 
-        //update user by token and token expiry time
+        // save token + expiry in DB
+        user.token = token;
+        user.resetpasswordExpires = Date.now() + 3600000; // 1 hour
+        await user.save();
 
-        const updatedDetails = await User.findByIdAndUpdate(
-            { email: email },
-            {
-                token: token,
-                resetpasswordExpires: Date.now() + 3600000, //1 hour
-            },
-            { new: true }
-        );
-
-        //create reset password url
+        // create reset URL
         const resetUrl = `http://localhost:3000/update-password?token=${token}`;
 
-        //send email to user with reset password link containing token,
-        //  url will be like this : http://localhost:3000/reset-password?token=xxxx
-
-        await mailSender(email,
+        // send mail
+        await mailSender(
+            email,
             "Reset Password",
-            `Click on the link to reset your password: ${resetUrl}`);
+            `Click on the link to reset your password: ${resetUrl}`
+        );
 
-        //return response
         return res.status(200).json({
             success: true,
             message: "Reset password link sent to your email",
         });
 
     } catch (error) {
-        console.log("Error in resetPasswordToken controller", error);
+        console.log("Error in resetPasswordToken:", error);
         return res.status(500).json({
             success: false,
             message: "Error in resetPasswordToken controller",
         });
     }
-}
+};
 
 
 
-//resetPassword
-
+// ========================
+// RESET PASSWORD
+// ========================
 exports.resetPassword = async (req, res) => {
     try {
-        //fetch token and new password from req.body
         const { password, confirmPassword, token } = req.body;
 
-        //validation
+        // validation
         if (password !== confirmPassword) {
             return res.status(400).json({
                 success: false,
@@ -75,14 +69,12 @@ exports.resetPassword = async (req, res) => {
             });
         }
 
-        //get userDetails from token and check if token is valid or not
-
+        // find user with valid token
         const userDetails = await User.findOne({
-            token: token,
-            resetpasswordExpires: { $gt: Date.now() }, //check if token is expired or not
+            token,
+            resetpasswordExpires: { $gt: Date.now() },
         });
 
-        //if no entry, invalid token
         if (!userDetails) {
             return res.status(400).json({
                 success: false,
@@ -90,39 +82,26 @@ exports.resetPassword = async (req, res) => {
             });
         }
 
-        //token time check
-
-        if (userDetails.resetpasswordExpires < Date.now()) {
-            return res.status(400).json({
-                success: false,
-                message: "Token has expired",
-            });
-        }
-
-        //hash new password
-
+        // hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        //update user password and reset token and token expiry time
+        // update password and clear token
+        userDetails.password = hashedPassword;
+        userDetails.token = undefined;
+        userDetails.resetpasswordExpires = undefined;
 
-        await User.findByIdAndUpdate(
-            { token: token },
-            { password: hashedPassword },
-            { new: true },
-        );
+        await userDetails.save();
 
-        //return response
         return res.status(200).json({
             success: true,
             message: "Password reset successful",
         });
 
-
     } catch (error) {
-        console.log("Error in resetPassword controller", error);
+        console.log("Error in resetPassword:", error);
         return res.status(500).json({
             success: false,
             message: "Error in resetPassword controller",
         });
     }
-}
+};

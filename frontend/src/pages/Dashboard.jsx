@@ -1,0 +1,32 @@
+// src/pages/Dashboard.jsx
+
+import { useSelector } from 'react-redux'
+import { Outlet } from 'react-router-dom'
+import Sidebar from '../components/core/Dashboard/Sidebar'
+
+const Dashboard = () => {
+    const { loading: profileLoading } = useSelector((state) => state.profile)
+    const { loading: authLoading } = useSelector((state) => state.auth)
+
+    if (profileLoading || authLoading) {
+        return <div className="mt-10 flex justify-center text-white text-3xl">Loading...</div>
+    }
+
+  return (
+    <div className="relative flex min-h-[calc(100vh-3.5rem)] bg-richblack-900">
+        
+        {/* Left Side: The Sidebar */}
+        <Sidebar />
+
+        {/* Right Side: The Dynamic Content (MyProfile, Settings, Cart, etc.) */}
+        <div className="h-[calc(100vh-3.5rem)] flex-1 overflow-auto">
+            <div className="mx-auto w-11/12 max-w-[1000px] py-10">
+                <Outlet />
+            </div>
+        </div>
+
+    </div>
+  )
+}
+
+export default Dashboard

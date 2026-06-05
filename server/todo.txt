@@ -1,0 +1,2 @@
+add some functionalities like a course can only be added if it has the approval of one or more admins -> draft satte ,pending state, 
+approval state ,publish state => state management

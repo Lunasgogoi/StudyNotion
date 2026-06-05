@@ -55,36 +55,37 @@ exports.createCategory = async (req, res) => {
 // getAllCategories handler function
 exports.getAllCategories = async (req, res) => {
     try {
-        // fetch all categories from DB, use .lean() for performance optimization
-        const allCategories = await Category.find({}, { name: 1, description: 1 }).lean();
 
-        // return response
+        const allCategories = await Category.find({})
+            .populate("courses");
+
         return res.status(200).json({
             success: true,
             message: "Categories fetched successfully",
-            allCategories,
+            data: allCategories, // FIXED
         });
 
     } catch (error) {
+
         console.error("Error in getAllCategories controller:", error);
+
         return res.status(500).json({
             success: false,
             message: "Error in fetching categories",
         });
     }
 };
-
-exports.categoryPageDeatils = async (req,res) => {
+exports.categoryPageDetails = async (req,res) => {
     try {
         //get ID
         const {categoryId} = req.body;
 
         //Get courses for the specified category
-        const selectedCatgory = await Category.findById(categoryId)
+        const selectedCategory = await Category.findById(categoryId)
             .populate("courses");
 
             //when category is not found
-            if (!selectedCatgory) {
+            if (!selectedCategory) {
                 return res.status(404).json({
                     success: false,
                     message: "Category not found",
@@ -92,14 +93,14 @@ exports.categoryPageDeatils = async (req,res) => {
             }
 
             //when there are no courses in the category
-            if (selectedCatgory.course.length === 0) {
+            if (!selectedCategory.courses || selectedCategory.courses.length === 0) {
                 return res.status(404).json({
                     success: false,
                     message: "No courses found in this category",
                 });
             }
 
-            const selectedCourses = selectedCatgory.course;
+            const selectedCourses = selectedCategory.courses;
 
             //get courses for all the other categories
             const CategoriesExceptSelected = await Category.find({
@@ -125,9 +126,12 @@ exports.categoryPageDeatils = async (req,res) => {
             res.status(200).json({
                 success: true,
                 message: "Category page details fetched successfully",
-                selectedCourses: selectedCourses,
-                differentCourses: differentCourses,
-                topSellingCourses: topSellingCourses,
+                data: {
+                    selectedCategory: selectedCategory,
+                    selectedCourses: selectedCourses,
+                    differentCourses: differentCourses,
+                    topSellingCourses: topSellingCourses,
+                },
             });
 
     } catch(error) {

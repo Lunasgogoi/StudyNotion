@@ -55,11 +55,7 @@ const otpTemplate = (otp) => {
 <body>
   <div class="container">
     <a href="https://studynotion-edtech-project.vercel.app">
-      <img
-        class="logo"
-        src="https://i.ibb.co/7Xyjj3PC/logo.png"
-        alt="StudyNotion Logo"
-      />
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg" width="100"/>
     </a>
 
     <div class="message">OTP Verification Email</div>
@@ -72,7 +68,30 @@ const otpTemplate = (otp) => {
         please use the following OTP (One-Time Password) to verify your account:
       </p>
 
-      <h2 class="highlight">${otp}</h2>
+      <h1 style="
+          background:#f4f4f4;
+          display:inline-block;
+          padding:10px 20px;
+          border-radius:8px;
+          letter-spacing:3px;
+          font-size:28px;
+        ">
+        ${otp}
+      </h1>
+
+<br/>
+
+<a href="#" style="
+  display:inline-block;
+  padding:10px 20px;
+  background:#4CAF50;
+  color:white;
+  text-decoration:none;
+  border-radius:5px;
+  margin-top:15px;
+">
+  Verify Account
+</a>
 
       <p>
         This OTP is valid for <strong>5 minutes</strong>.  
@@ -96,4 +115,4 @@ const otpTemplate = (otp) => {
 };
 
 
-export default otpTemplate;
+module.exports = otpTemplate;

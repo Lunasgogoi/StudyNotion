@@ -45,7 +45,7 @@ const courseSchema = new mongoose.Schema({
         ref: "Category",
         required: true, // Usually, every course must belong to a category
     },
-    tag: {
+    courseTags: {
         type: [String], // Changed to Array of Strings for better flexibility
         required: true,
     },
