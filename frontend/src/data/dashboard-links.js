@@ -31,14 +31,21 @@ export const sidebarLinks = [
     id: 5,
     name: "Enrolled Courses",
     path: "/dashboard/enrolled-courses",
-    type: "Student",
+    type: "User", // <-- Changed to match your current account type
     icon: "VscMortarBoard",
   },
   {
     id: 6,
+    name: "Wishlist",
+    path: "/dashboard/wishlist",
+    type: "User", // <-- Added Wishlist back and changed to User
+    icon: "VscHeart",
+  },
+  {
+    id: 7,
     name: "Cart",
     path: "/dashboard/cart",
-    type: "Student",
+    type: "User", // <-- Changed to match your current account type
     icon: "VscArchive",
   },
 ];

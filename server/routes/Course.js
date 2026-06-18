@@ -12,7 +12,7 @@ const {
     getInstructorCourses,
 } = require("../controllers/Course");
 
-const {deleteCourse} = require("../controllers/Course")
+const { deleteCourse } = require("../controllers/Course")
 
 // console.log({
 //   createCourse,
@@ -63,6 +63,7 @@ const {
     getAllRatingsAndReviews,
 } = require("../controllers/RatingsAndReview");
 
+const { updateCourseProgress } = require("../controllers/CourseProgress");
 
 // ================================
 // Importing Middlewares
@@ -148,6 +149,8 @@ router.get("/getAverageRating", getAverageRating);
 // Get all reviews
 router.get("/getReviews", getAllRatingsAndReviews);;
 
+// Update course progress
+router.post("/updateCourseProgress", auth, isStudent, updateCourseProgress);
 
 // Export the router
 module.exports = router;

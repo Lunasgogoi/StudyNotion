@@ -1,7 +1,7 @@
 // src/services/operations/courseDetailsAPI.js
 import { toast } from "react-hot-toast"
 import { apiConnector } from "../apiconnector"
-import { courseEndpoints } from "../apis"
+import { courseEndpoints, ratingsEndpoints } from "../apis"
 
 const { COURSE_CATEGORIES_API } = courseEndpoints
 const { GET_ALL_INSTRUCTOR_COURSES_API } = courseEndpoints
@@ -211,3 +211,62 @@ export const fetchCourseDetails = async (courseId) => {
   toast.dismiss(toastId)
   return result
 }
+
+
+// ... existing imports and functions
+
+export const markLectureAsComplete = async (data, token) => {
+  let result = null
+  const toastId = toast.loading("Loading...")
+  try {
+    const response = await apiConnector(
+      "POST", 
+      courseEndpoints.UPDATE_COURSE_PROGRESS_API,
+      data, 
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    )
+
+    if (!response.data.success) {
+      throw new Error(response.data.message)
+    }
+
+    toast.success("Lecture Completed")
+    result = true
+  } catch (error) {
+    console.log("MARK_LECTURE_AS_COMPLETE_API ERROR............", error)
+    toast.error(getApiErrorMessage(error, "Could not update lecture progress"))
+    result = false
+  }
+  toast.dismiss(toastId)
+  return result
+}
+
+export const createRating = async (data, token) => {
+  const toastId = toast.loading("Saving review...")
+  let result = false
+  try {
+    const response = await apiConnector(
+      "POST",
+      ratingsEndpoints.CREATE_RATING_API,
+      data,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    )
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Could not create rating")
+    }
+
+    toast.success(response.data.message || "Review saved")
+    result = true
+  } catch (error) {
+    console.log("CREATE_RATING_API ERROR............", error)
+    toast.error(getApiErrorMessage(error, "Could not save review"))
+  }
+  toast.dismiss(toastId)
+  return result
+}
+

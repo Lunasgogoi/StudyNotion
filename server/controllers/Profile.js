@@ -164,24 +164,35 @@ exports.updateDisplayPicture = async (req, res) => {
 };
 
 // ================================
-// GET ENROLLED COURSES (MISSING)
+// GET ENROLLED COURSES
 // ================================
 exports.getEnrolledCourse = async (req, res) => {
     try {
-        const id = req.user.id;
+        const userId = req.user.id;
 
-        const userDetails = await User.findById(id)
+        const userDetails = await User.findOne({ _id: userId })
             .populate({
-                path: "enrolledCourses",
+                path: "courses",
                 populate: {
-                    path: "instructor",
+                    path: "courseContent",
+                    populate: {
+                        path: "subSection",
+                    },
                 },
+            })
+            .exec()
+
+        if (!userDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
             });
+        }
 
         return res.status(200).json({
             success: true,
             message: "Enrolled courses fetched successfully",
-            data: userDetails.enrolledCourses,
+            data: userDetails.courses,
         });
 
     } catch (error) {
@@ -196,29 +207,29 @@ exports.getEnrolledCourse = async (req, res) => {
 // for the instructor dashboard, we need to fetch all courses created by the instructor and also calculate the total students enrolled and total amount generated for each course. This will help the instructor to get an overview of their courses and earnings.
 
 exports.instructorDashboard = async (req, res) => {
-  try {
-    const courseDetails = await Course.find({ instructor: req.user.id });
+    try {
+        const courseDetails = await Course.find({ instructor: req.user.id });
 
-    const courseData = courseDetails.map((course) => {
-      const totalStudentsEnrolled = course.studentsEnrolled.length;
-      const totalAmountGenerated = totalStudentsEnrolled * course.price;
+        const courseData = courseDetails.map((course) => {
+            const totalStudentsEnrolled = course.studentsEnrolled.length;
+            const totalAmountGenerated = totalStudentsEnrolled * course.price;
 
-      // Create a new object with the additional fields
-      const courseDataWithStats = {
-        _id: course._id,
-        courseName: course.courseName,
-        courseDescription: course.courseDescription,
-        totalStudentsEnrolled,
-        totalAmountGenerated,
-      };
-      return courseDataWithStats;
-    });
+            // Create a new object with the additional fields
+            const courseDataWithStats = {
+                _id: course._id,
+                courseName: course.courseName,
+                courseDescription: course.courseDescription,
+                totalStudentsEnrolled,
+                totalAmountGenerated,
+            };
+            return courseDataWithStats;
+        });
 
-    res.status(200).json({
-      courses: courseData,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
+        res.status(200).json({
+            courses: courseData,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 };

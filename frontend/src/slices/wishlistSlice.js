@@ -1,10 +1,41 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { toast } from "react-hot-toast"
 
+const getUserId = (user) => user?._id || user?.id || user?.email || null
+
+const getStoredUser = () => {
+  try {
+    const user = localStorage.getItem("user")
+    return user ? JSON.parse(user) : null
+  } catch {
+    return null
+  }
+}
+
+const getWishlistKey = (userId) => (userId ? `wishlist_${userId}` : "wishlist_guest")
+
+const getStoredWishlist = (userId) => {
+  try {
+    return JSON.parse(localStorage.getItem(getWishlistKey(userId))) || []
+  } catch {
+    return []
+  }
+}
+
+const saveWishlist = (userId, wishlist) => {
+  localStorage.setItem(getWishlistKey(userId), JSON.stringify(wishlist))
+}
+
+const removeWishlist = (userId) => {
+  localStorage.removeItem(getWishlistKey(userId))
+}
+
+const currentUserId = getUserId(getStoredUser())
+const currentWishlist = getStoredWishlist(currentUserId)
+
 const initialState = {
-  wishlist: localStorage.getItem("wishlist")
-    ? JSON.parse(localStorage.getItem("wishlist"))
-    : [],
+  userId: currentUserId,
+  wishlist: currentWishlist,
 }
 
 const wishlistSlice = createSlice({
@@ -22,7 +53,7 @@ const wishlistSlice = createSlice({
       }
 
       state.wishlist.push(course)
-      localStorage.setItem("wishlist", JSON.stringify(state.wishlist))
+      saveWishlist(state.userId, state.wishlist)
       toast.success("Added to wishlist")
     },
     removeFromWishlist: (state, action) => {
@@ -31,17 +62,37 @@ const wishlistSlice = createSlice({
 
       if (index >= 0) {
         state.wishlist.splice(index, 1)
-        localStorage.setItem("wishlist", JSON.stringify(state.wishlist))
+        saveWishlist(state.userId, state.wishlist)
         toast.success("Removed from wishlist")
       }
     },
-    resetWishlist: (state) => {
+
+    loadWishlistForUser: (state, action) => {
+      const userId = getUserId(action.payload)
+      const wishlist = getStoredWishlist(userId)
+
+      state.userId = userId
+      state.wishlist = wishlist
+    },
+
+    clearWishlistState: (state) => {
+      state.userId = null
       state.wishlist = []
-      localStorage.removeItem("wishlist")
+    },
+
+    resetWishlist: (state) => {
+      removeWishlist(state.userId)
+      state.wishlist = []
     },
 
   },
 })
 
-export const { addToWishlist, removeFromWishlist, resetWishlist } = wishlistSlice.actions
+export const {
+  addToWishlist,
+  removeFromWishlist,
+  loadWishlistForUser,
+  clearWishlistState,
+  resetWishlist,
+} = wishlistSlice.actions
 export default wishlistSlice.reducer

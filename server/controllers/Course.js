@@ -7,6 +7,8 @@ const Category = require("../models/Category");
 const { uploadImageToCloudinary } = require("../utils/imageUploader");
 const Section = require("../models/Section");
 const SubSection = require("../models/SubSection");
+const CourseProgress = require("../models/CourseProgress");
+const jwt = require("jsonwebtoken");
 
 exports.createCourse = async (req, res) => {
     try {
@@ -281,10 +283,30 @@ exports.getCourseDetails = async (req, res) => {
             });
         }
 
+        let completedVideos = [];
+        const token = req.cookies?.token ||
+            req.header("Authorization")?.replace("Bearer ", "") ||
+            req.body.token;
+
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                const courseProgress = await CourseProgress.findOne({
+                    courseId,
+                    userId: decoded.id,
+                });
+
+                completedVideos = courseProgress?.completedVideos || [];
+            } catch (error) {
+                completedVideos = [];
+            }
+        }
+
         return res.status(200).json({
             success: true,
             message: "Course details fetched successfully",
             data: courseDetails,
+            completedVideos,
         });
 
     } catch (error) {

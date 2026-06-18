@@ -4,6 +4,7 @@ import rzpLogo from "../../assets/Logo/rzp_logo.png" // Make sure you have a log
 import { setPaymentLoading } from "../../slices/courseSlice";
 import { resetCart } from "../../slices/cartSlice";
 
+
 // Load the Razorpay SDK script dynamically
 function loadScript(src) {
     return new Promise((resolve) => {
@@ -14,6 +15,8 @@ function loadScript(src) {
         document.body.appendChild(script);
     });
 }
+
+const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY;
 
 export async function buyCourse(token, courses, userDetails, navigate, dispatch) {
     const toastId = toast.loading("Loading...");
@@ -26,7 +29,7 @@ export async function buyCourse(token, courses, userDetails, navigate, dispatch)
         }
 
         // 2. Initiate the order on your backend
-        const orderResponse = await apiConnector("POST", "http://localhost:4000/api/v1/payment/capturePayment", 
+        const orderResponse = await apiConnector("POST", "http://localhost:4000/api/v1/payment/capturePayment",
             { courses },
             { Authorization: `Bearer ${token}` }
         );
@@ -37,7 +40,7 @@ export async function buyCourse(token, courses, userDetails, navigate, dispatch)
 
         // 3. Configure the Razorpay Modal
         const options = {
-            key: process.env.REACT_APP_RAZORPAY_KEY, // You need this in your .env file!
+            key: razorpayKey,
             currency: orderResponse.data.message.currency,
             amount: `${orderResponse.data.message.amount}`,
             order_id: orderResponse.data.message.id,
@@ -65,9 +68,9 @@ export async function buyCourse(token, courses, userDetails, navigate, dispatch)
 
     } catch (error) {
         console.log("PAYMENT API ERROR.....", error);
-        toast.error("Could not make Payment");
+        // Now it will display the specific error message your backend sent!
+        toast.error(error.message || "Could not make Payment");
     }
-    toast.dismiss(toastId);
 }
 
 // Helper function to verify payment on your backend
@@ -82,7 +85,7 @@ async function verifyPayment(bodyData, token, navigate, dispatch) {
         if (!response.data.success) {
             throw new Error(response.data.message);
         }
-        
+
         toast.success("Payment successful, you are added to the course");
         navigate("/dashboard/enrolled-courses");
         dispatch(resetCart());

@@ -5,6 +5,7 @@ import { useParams, Link } from 'react-router-dom' // <-- Cleaned up imports and
 import { fetchCourseCategories } from '../services/operations/courseDetailsAPI'
 import { getCatalogPageData } from '../services/operations/pageAndComponentData'
 import GetAvgRating from '../utils/avgRating'
+import RatingStars from "../components/common/RatingStars"
 
 const Catalog = () => {
   const { categoryName } = useParams()
@@ -87,8 +88,10 @@ const Catalog = () => {
           ) : (
             catalogPageData?.data?.selectedCategory?.courses?.map((course, index) => {
 
-              // Calculate the average rating for THIS specific course
-              const avgReviewCount = GetAvgRating(course?.ratingAndReviews);
+              // 🔥 Safely check for both spelling variations
+              const reviewsArr = course?.ratingsAndReviews || []
+              const ratingCount = reviewsArr.length
+              const avgReviewCount = GetAvgRating(reviewsArr)
 
               return (
                 /* 🔥 The Link tag is now wrapping the card, making the whole thing clickable 🔥 */
@@ -106,12 +109,12 @@ const Catalog = () => {
 
                     {/* DYNAMIC RATING SECTION */}
                     <div className="flex items-center gap-2">
-                      <span className="text-yellow-5">
-                        {avgReviewCount === 0 ? "N/A" : avgReviewCount}
-                      </span>
-                      {/* TODO: Add your Star Rating Component here later */}
+                      {ratingCount > 0 && (
+                        <span className="text-yellow-5">{avgReviewCount}</span>
+                      )}
+                      <RatingStars Review_Count={avgReviewCount} Star_Size={20} />
                       <span className="text-richblack-400">
-                        {course?.ratingAndReviews?.length || 0} Ratings
+                        {ratingCount > 0 ? `${ratingCount} Ratings` : "No ratings yet"}
                       </span>
                     </div>
 

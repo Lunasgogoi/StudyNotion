@@ -1,14 +1,10 @@
 export default function GetAvgRating(ratingArr) {
-  // If no ratings exist, return 0
-  if (!ratingArr || ratingArr?.length === 0) return 0;
-
-  // Sum up all the ratings
+  if (!Array.isArray(ratingArr) || ratingArr.length === 0) return 0;
+  
   const totalReviewCount = ratingArr?.reduce((acc, curr) => {
-    acc += curr.rating;
-    return acc;
+    return acc + Number(curr.rating || 0);
   }, 0);
 
-  // Calculate the average and round it to 1 decimal place (e.g., 4.5)
   const multiplier = Math.pow(10, 1);
   const avgReviewCount =
     Math.round((totalReviewCount / ratingArr?.length) * multiplier) / multiplier;

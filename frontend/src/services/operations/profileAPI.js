@@ -1,8 +1,11 @@
 import { toast } from "react-hot-toast"
 import { apiConnector } from "../apiConnector"
-// Assuming your endpoints are mapped in apis.js
-// GET_USER_ENROLLED_COURSES_API: BASE_URL + "/profile/getEnrolledCourses"
-// GET_INSTRUCTOR_DATA_API: BASE_URL + "/profile/instructorDashboard"
+import { profileEndpoints } from "../apis"
+
+const {
+  GET_USER_ENROLLED_COURSES_API,
+  GET_INSTRUCTOR_DATA_API,
+} = profileEndpoints
 
 export async function getUserEnrolledCourses(token) {
   const toastId = toast.loading("Loading...")
@@ -10,8 +13,7 @@ export async function getUserEnrolledCourses(token) {
   try {
     const response = await apiConnector(
       "GET",
-      // Replace with your actual endpoint variable from apis.js
-      "http://localhost:4000/api/v1/profile/getEnrolledCourses", 
+      GET_USER_ENROLLED_COURSES_API,
       null,
       { Authorization: `Bearer ${token}` }
     )
@@ -33,8 +35,7 @@ export async function getInstructorData(token) {
   try {
     const response = await apiConnector(
       "GET",
-      // Replace with your actual endpoint variable from apis.js
-      "http://localhost:4000/api/v1/profile/instructorDashboard",
+      GET_INSTRUCTOR_DATA_API,
       null,
       { Authorization: `Bearer ${token}` }
     )

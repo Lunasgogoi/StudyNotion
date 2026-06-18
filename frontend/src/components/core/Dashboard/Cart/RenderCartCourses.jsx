@@ -11,15 +11,16 @@ export default function RenderCartCourses() {
   return (
     <div className="flex flex-1 flex-col">
       {cart.map((course, indx) => {
-        const avgRating = GetAvgRating(course?.ratingsAndReviews || [])
-        const ratingCount = course?.ratingsAndReviews?.length || 0
+        // 🔥 Safely check for both spelling variations
+        const reviewsArr = course?.ratingsAndReviews || []
+        const avgRating = GetAvgRating(reviewsArr)
+        const ratingCount = reviewsArr.length
 
         return (
           <div
             key={course._id}
-            className={`flex w-full flex-wrap items-start justify-between gap-6 ${
-              indx !== cart.length - 1 && "border-b border-b-richblack-400 pb-6"
-            } ${indx !== 0 && "mt-6"}`}
+            className={`flex w-full flex-wrap items-start justify-between gap-6 ${indx !== cart.length - 1 && "border-b border-b-richblack-400 pb-6"
+              } ${indx !== 0 && "mt-6"}`}
           >
             {/* Left Part: Image and Details */}
             <div className="flex flex-1 flex-col gap-4 xl:flex-row">
@@ -31,12 +32,16 @@ export default function RenderCartCourses() {
               <div className="flex flex-col space-y-1">
                 <p className="text-lg font-medium text-richblack-5">{course?.courseName}</p>
                 <p className="text-sm text-richblack-300">{course?.category?.name}</p>
-                
+
                 {/* Dynamic Star Rating */}
                 <div className="flex items-center gap-2">
-                  <span className="text-yellow-5">{avgRating || "N/A"}</span>
+                  {ratingCount > 0 && (
+                    <span className="text-yellow-5">{avgRating}</span>
+                  )}
                   <RatingStars Review_Count={avgRating} Star_Size={20} />
-                  <span className="text-richblack-400">({ratingCount} Ratings)</span>
+                  <span className="text-richblack-400">
+                    {ratingCount > 0 ? `(${ratingCount} Ratings)` : "No ratings yet"}
+                  </span>
                 </div>
               </div>
             </div>

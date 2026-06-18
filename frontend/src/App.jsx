@@ -24,6 +24,10 @@ import Instructor from "./components/core/Dashboard/InstructoDashBoard/Instructo
 import Wishlist from "./components/core/Dashboard/WishList";
 //import { Chart } from "chart.js"
 import EditCourse from "./components/core/Dashboard/EditCourse"; // Don't forget to import this!
+import ViewCourse from "./pages/ViewCourse";
+import VideoDetails from "./components/core/ViewCourse/VideoDetails";
+
+
 
 function App() {
   return (
@@ -43,6 +47,20 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="catalog/:categoryName" element={<Catalog />} />
         <Route path="/courses/:courseId" element={<CourseDetails />} />
+
+        <Route
+          element={
+            <PrivateRoute>
+              <ViewCourse />
+            </PrivateRoute>
+          }
+        >
+          {/* We will build the VideoDetails component next! */}
+          <Route
+            path="view-course/:courseId/section/:sectionId/sub-section/:subSectionId"
+            element={<VideoDetails />}
+          />
+        </Route>
 
         {/* Dashboard Routes (Everything inside here gets the Sidebar) */}
         <Route element={<Dashboard />}>

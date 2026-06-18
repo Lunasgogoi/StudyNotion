@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
+import { buyCourse } from "../../../../services/operations/studentFeaturesAPI"
 
 export default function RenderTotalAmount() {
   const { total, cart } = useSelector((state) => state.cart)
@@ -9,9 +10,11 @@ export default function RenderTotalAmount() {
   const dispatch = useDispatch()
 
   const handleBuyCourse = () => {
+    // Extract just the course IDs from the cart array
     const courses = cart.map((course) => course._id)
-    console.log("Bought these courses:", courses)
-    // TODO: Integrate Razorpay Payment Gateway here
+    
+    // Call the Razorpay API integration
+    buyCourse(token, courses, user, navigate, dispatch)
   }
 
   return (

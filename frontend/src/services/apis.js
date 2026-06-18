@@ -11,11 +11,13 @@ export const courseEndpoints = {
   CREATE_SUBSECTION_API: BASE_URL + "/course/addSubSection",
   DELETE_COURSE_API: BASE_URL + "/course/deleteCourse",
   COURSE_DETAILS_API: BASE_URL + "/course/getCourseDetails",
+  UPDATE_COURSE_PROGRESS_API: BASE_URL + "/course/updateCourseProgress",
 };
 
 // RATINGS AND REVIEWS ENDPOINTS
 export const ratingsEndpoints = {
   REVIEWS_DETAILS_API: BASE_URL + "/course/getReviews",
+  CREATE_RATING_API: BASE_URL + "/course/createRating",
 };
 
 // AUTH ENDPOINTS (You might already have these somewhere, but good to move them here!)
@@ -31,6 +33,11 @@ export const settingsEndpoints = {
   UPDATE_PROFILE_API: BASE_URL + "/profile/updateProfile",
   CHANGE_PASSWORD_API: BASE_URL + "/auth/changepassword",
   DELETE_PROFILE_API: BASE_URL + "/profile/deleteProfile",
+}
+
+export const profileEndpoints = {
+  GET_USER_ENROLLED_COURSES_API: BASE_URL + "/profile/getEnrolledCourse",
+  GET_INSTRUCTOR_DATA_API: BASE_URL + "/profile/instructorDashboard",
 }
 
 export const catalogData = {

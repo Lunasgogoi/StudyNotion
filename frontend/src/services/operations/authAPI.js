@@ -4,8 +4,8 @@ import { setLoading, setToken } from "../../slices/authSlice"
 import { apiConnector } from "../apiConnector"
 import { endpoints } from "../apis"
 import { setUser } from "../../slices/profileSlice"
-import { resetCart } from "../../slices/cartSlice"
-import { resetWishlist } from "../../slices/wishlistSlice"
+import { clearCartState, loadCartForUser } from "../../slices/cartSlice"
+import { clearWishlistState, loadWishlistForUser } from "../../slices/wishlistSlice"
 
 const { SENDOTP_API, SIGNUP_API, LOGIN_API } = endpoints
 
@@ -97,6 +97,8 @@ export function login(email, password, navigate) {
       // Save it to localStorage so the user stays logged in after a refresh
       localStorage.setItem("token", JSON.stringify(response.data.token))
       localStorage.setItem("user", JSON.stringify(response.data.user))
+      dispatch(loadCartForUser(response.data.user))
+      dispatch(loadWishlistForUser(response.data.user))
       
       // TODO: Save user data (name, image) to a profileSlice later!
       navigate("/dashboard/my-profile")
@@ -116,13 +118,11 @@ export function logout(navigate) {
     dispatch(setUser(null))
     
     // 🔥 WIPE THE CART AND WISHLIST 🔥
-    dispatch(resetCart())
-    dispatch(resetWishlist())
+    dispatch(clearCartState())
+    dispatch(clearWishlistState())
 
     localStorage.removeItem("token")
     localStorage.removeItem("user")
-    // Note: resetCart and resetWishlist already handle removing their respective localStorage items!
-
     toast.success("Logged Out")
     navigate("/")
   }
