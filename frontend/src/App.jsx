@@ -21,7 +21,7 @@ import Settings from "./components/core/Dashboard/Settings";
 import EnrolledCourses from "./components/core/Dashboard/EnrolledCourses";
 import Cart from "./components/core/Dashboard/Cart";
 import Instructor from "./components/core/Dashboard/InstructoDashBoard/Instructor";
-import Wishlist from "./components/core/Dashboard/WishList";
+import Wishlist from "./components/core/Dashboard/Wishlist";
 //import { Chart } from "chart.js"
 import EditCourse from "./components/core/Dashboard/EditCourse"; // Don't forget to import this!
 import ViewCourse from "./pages/ViewCourse";
