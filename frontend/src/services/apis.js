@@ -1,5 +1,5 @@
 // src/services/apis.js
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:4000/api/v1";
+const BASE_URL = import.meta.env.VITE_BASE_URL || "https://studynotion-emet.onrender.com/api/v1";
 
 // COURSE ENDPOINTS
 export const courseEndpoints = {
