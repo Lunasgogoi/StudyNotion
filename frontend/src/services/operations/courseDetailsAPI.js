@@ -1,6 +1,6 @@
 // src/services/operations/courseDetailsAPI.js
 import { toast } from "react-hot-toast"
-import { apiConnector } from "../apiconnector"
+import { apiConnector } from "../apiConnector"
 import { courseEndpoints, ratingsEndpoints } from "../apis"
 
 const { COURSE_CATEGORIES_API } = courseEndpoints

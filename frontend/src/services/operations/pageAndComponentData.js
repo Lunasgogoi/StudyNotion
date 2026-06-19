@@ -1,6 +1,6 @@
 // src/services/operations/pageAndComponentData.js
 import { toast } from "react-hot-toast";
-import { apiConnector } from "../apiconnector";
+import { apiConnector } from "../apiConnector";
 import { ratingsEndpoints } from "../apis";
 import {catalogData} from "../apis";
 
