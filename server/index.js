@@ -3,12 +3,12 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 
-
 // Routes
 const userRoutes = require("./routes/User");
 const profileRoutes = require("./routes/Profile");
 const paymentRoutes = require("./routes/Payments");
 const courseRoutes = require("./routes/Course");
+const contactRoutes = require("./routes/Contact");
 
 // Configs
 const database = require("./config/database");
@@ -19,48 +19,46 @@ const fileUpload = require("express-fileupload");
 
 const PORT = process.env.PORT || 4000;
 
-
 app.use(
     fileUpload({
         useTempFiles: true,
-        tempFileDir: "./tmp/", // Added a dot to make it relative to your project folder
+        tempFileDir: "./tmp/", 
     })
 );
 
 app.use(express.json());
-
 app.use(cookieParser());
 
+// Add your Vercel URL right here! No trailing slash at the end.
 const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
-    "https://studynotion-emet.onrender.com",
+    "https://study-notion-l6ohjl505-lunas-gogoi-s-projects.vercel.app" 
 ];
 
 app.use(
     cors({
         origin: (origin, callback) => {
+            // Allow requests with no origin (like mobile apps or curl requests)
             if (!origin || allowedOrigins.includes(origin)) {
                 return callback(null, true);
             }
-
             return callback(new Error(`CORS blocked origin: ${origin}`));
         },
         credentials: true,
     })
 );
 
-
 cloudinaryConnect();
 
-
+// Mount Routes
 app.use("/api/v1/auth", userRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/course", courseRoutes);
-
+app.use("/api/v1/reach", contactRoutes);
 
 app.get("/", (req, res) => {
     res.status(200).json({
@@ -69,39 +67,19 @@ app.get("/", (req, res) => {
     });
 });
 
-
- //START
-
-const contactRoutes = require("./routes/Contact");
-app.use("/api/v1/reach", contactRoutes);
-
+// Start Server cleanly
 const startServer = async () => {
-    const deployedMongoUrl = process.env.MONGODB_URL;
-    const localMongoUrl = process.env.LOCAL_MONGODB_URL || "mongodb://127.0.0.1:27017/studynotion";
-
-    const mongoUrls = [
-        { label: "local MongoDB", url: localMongoUrl },
-        { label: "deployed MongoDB", url: deployedMongoUrl },
-    ].filter(({ url }) => Boolean(url));
-
-    for (const { label, url } of mongoUrls) {
-        try {
-            console.log(`Trying ${label}...`);
-            process.env.MONGODB_URL = url;
-            await database.connect();
-            console.log(`Connected using ${label}`);
-
-            app.listen(PORT, () => {
-                console.log(`Server is running on port ${PORT}`);
-            });
-            return;
-        } catch (error) {
-            console.error(`Could not connect using ${label}:`, error.message);
-        }
+    try {
+        // Ensure your config/database.js connects using process.env.MONGODB_URL
+        await database.connect(); 
+        
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error("Failed to start server:", error.message);
+        process.exit(1);
     }
-
-    console.error("Could not connect to any MongoDB URL");
-    process.exit(1);
 };
 
 startServer();
