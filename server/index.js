@@ -35,7 +35,8 @@ const allowedOrigins = [
     "http://localhost:5173",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
-    "https://study-notion-iota-khaki-83.vercel.app" // <-- Your permanent Vercel domain!
+    "https://study-notion-iota-khaki-83.vercel.app",
+    "https://study-notion-5bjh3on1h-lunas-gogoi-s-projects.vercel.app"
 ];
 
 app.use(
