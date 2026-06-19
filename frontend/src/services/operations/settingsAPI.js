@@ -63,9 +63,7 @@ export function updateProfile(token, formData) {
         throw new Error(response.data.message)
       }
       
-      // Look at your console! What is the user object called? 
-      // It is usually response.data.data or response.data.updatedUserDetails
-      const updatedUser = response.data.updatedUserDetails || response.data.data || response.data.profile;
+      const updatedUser = response.data.data || response.data.updatedUserDetails || response.data.profile
 
       dispatch(setUser(updatedUser))
       localStorage.setItem("user", JSON.stringify(updatedUser))

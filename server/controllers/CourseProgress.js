@@ -33,19 +33,28 @@ exports.updateCourseProgress = async (req, res) => {
       });
     }
 
-    // 3. Check if video is already marked as completed
-    if (courseProgress.completedVideos.some((id) => id.toString() === subsectionId)) {
-      return res.status(400).json({ success: false, message: "Subsection already completed" });
+    // 3. Toggle the subsection completion state
+    const completedVideoIndex = courseProgress.completedVideos.findIndex(
+      (id) => id.toString() === subsectionId
+    );
+
+    let isCompleted = true;
+    if (completedVideoIndex >= 0) {
+      courseProgress.completedVideos.splice(completedVideoIndex, 1);
+      isCompleted = false;
+    } else {
+      courseProgress.completedVideos.push(subsectionId);
     }
 
-    // 4. Push the new video to the completed array
-    courseProgress.completedVideos.push(subsectionId);
     await courseProgress.save();
 
     return res.status(200).json({
       success: true,
-      message: "Course progress updated successfully",
+      message: isCompleted
+        ? "Lecture marked as completed"
+        : "Lecture marked as incomplete",
       data: courseProgress.completedVideos,
+      isCompleted,
     });
   } catch (error) {
     console.error(error);

@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react"
 import { BsChevronDown } from "react-icons/bs"
 import { IoIosArrowBack } from "react-icons/io"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { useLocation, useNavigate, useParams } from "react-router-dom"
+import { toggleLectureCompletion } from "../../../services/operations/courseDetailsAPI"
+import { setCompletedLectures } from "../../../slices/viewCourseSlices"
 
 export default function VideoDetailsSidebar({ setReviewModal }) {
   const [activeStatus, setActiveStatus] = useState("")
   const [videoBarActive, setVideoBarActive] = useState("")
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const location = useLocation()
   const { sectionId, subSectionId } = useParams()
+  const { token } = useSelector((state) => state.auth)
 
   const {
     courseSectionData,
@@ -17,6 +21,19 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
     totalNoOfLectures,
     completedLectures,
   } = useSelector((state) => state.viewCourse)
+
+  const handleLectureToggle = async (event, topicId) => {
+    event.stopPropagation()
+
+    const response = await toggleLectureCompletion(
+      { courseId: courseEntireData?._id, subsectionId: topicId },
+      token
+    )
+
+    if (response?.success) {
+      dispatch(setCompletedLectures(response.data || []))
+    }
+  }
 
   useEffect(() => {
     ; (() => {
@@ -99,9 +116,9 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
                   >
                     <input
                       type="checkbox"
-                      // Notice the ? and the fallback to false
                       checked={completedLectures?.includes(topic?._id) || false}
-                      readOnly
+                      onChange={(event) => handleLectureToggle(event, topic?._id)}
+                      onClick={(event) => event.stopPropagation()}
                     />
                     {topic.title}
                   </div>

@@ -80,8 +80,8 @@ exports.verifyPayment = async (req, res) => {
         .update(body.toString())
         .digest("hex");
 
-    // if (expectedSignature === razorpay_signature) {
-    if(true) { // For testing purposes, we will skip signature verification. Remove this line and uncomment the above line in production!}
+    if (expectedSignature === razorpay_signature) {
+    // if(true) { // For testing purposes, we will skip signature verification. Remove this line and uncomment the above line in production!}
         // Payment is verified! Now enroll the user in ALL courses
         await enrollStudents(courses, userId, res);
         return res.status(200).json({ success: true, message: "Payment Verified" });

@@ -24,7 +24,9 @@ const viewCourseSlice = createSlice({
       state.completedLectures = action.payload
     },
     updateCompletedLectures: (state, action) => {
-      state.completedLectures = [...state.completedLectures, action.payload]
+      if (!state.completedLectures.includes(action.payload)) {
+        state.completedLectures = [...state.completedLectures, action.payload]
+      }
     },
   },
 })

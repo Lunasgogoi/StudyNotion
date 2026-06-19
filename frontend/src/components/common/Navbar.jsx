@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, matchPath, useLocation } from 'react-router-dom'
+import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { BsChevronDown } from "react-icons/bs"
 import { AiOutlineHeart, AiOutlineShoppingCart, AiOutlineSearch } from "react-icons/ai"
@@ -13,6 +13,17 @@ const Navbar = () => {
 
     const { token } = useSelector((state) => state.auth);
     const { user } = useSelector((state) => state.profile);
+    const navigate = useNavigate()
+    const [searchQuery, setSearchQuery] = useState("")
+
+    const handleSearch = (e) => {
+        if (e.key === 'Enter' && searchQuery.trim().length > 0) {
+            // encodeURIComponent handles special characters and spaces safely
+            const encodedQuery = encodeURIComponent(searchQuery.trim());
+            navigate(`/search/${encodedQuery}`);
+            setSearchQuery("");
+        }
+    }
 
     // Fetch Categories for the dropdown on mount
     useEffect(() => {
@@ -86,9 +97,12 @@ const Navbar = () => {
                         <li className="flex items-center">
                             <div className="relative">
                                 <AiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-richblack-400 text-lg " />
-                                <input 
-                                    type="text" 
-                                    placeholder="Search courses..." 
+                                <input
+                                    type="text"
+                                    placeholder="Search courses..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={handleSearch}
                                     className="h-10 w-[290px] rounded-full border border-richblack-600 bg-richblack-700 py-2 pl-10 pr-4 text-sm text-richblack-100 transition-all duration-200 placeholder:text-richblack-400 focus:border-yellow-50 focus:bg-richblack-800 focus:outline-none"
                                 />
                             </div>
@@ -124,7 +138,6 @@ const Navbar = () => {
                             <Link to="/dashboard/my-profile">
                                 <div className="flex items-center gap-x-1">
                                     <img
-                                        // Added DiceBear as a fallback if user.image is missing from the database
                                         src={user?.image ?? `https://api.dicebear.com/5.x/initials/svg?seed=${user?.firstName ?? 'User'}`}
                                         alt={`profile-${user?.firstName ?? 'avatar'}`}
                                         className="aspect-square w-[30px] rounded-full object-cover border border-richblack-700"

@@ -48,4 +48,10 @@ export const sidebarLinks = [
     type: "User", // <-- Changed to match your current account type
     icon: "VscArchive",
   },
+  {
+    id: 8,
+    name: "About Us",
+    path: "/about",
+    icon: "VscInfo",
+  },
 ];

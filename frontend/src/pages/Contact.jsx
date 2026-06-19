@@ -1,9 +1,9 @@
-// src/pages/Contact.jsx
-//import React from 'react'
+import React from 'react'
 import Footer from '../components/common/Footer'
 import ReviewSlider from '../components/common/ReviewSlider'
 import ContactDetails from '../components/ContactPage/ContactDetails'
-import ContactFormSection from '../components/core/AboutPage/ContactFormSection' // Reusing our form!
+// Import the form directly, NOT the Section wrapper (this fixes the duplicate headings!)
+import ContactUsForm from '../components/ContactPage/ContactUsForm' 
 
 const Contact = () => {
   return (
@@ -15,7 +15,7 @@ const Contact = () => {
           <ContactDetails />
         </div>
 
-        {/* Right Side: Contact Form */}
+        {/* Right Side: Contact Form Container */}
         <div className="lg:w-[60%] border border-richblack-600 text-richblack-300 rounded-xl p-7 lg:p-14 flex gap-3 flex-col shadow-[0px_0px_20px_0px_rgba(255,255,255,0.05)]">
             <h1 className="text-4xl leading-10 font-semibold text-richblack-5">
                 Got a Idea? We've got the skills. Let's team up
@@ -23,10 +23,10 @@ const Contact = () => {
             <p className="text-richblack-300 mt-2 mb-8">
                 Tell us more about yourself and what you're got in mind.
             </p>
-            {/* Reusing the form inputs we already built! */}
-            <div className="mt-7">
-               <ContactFormSection />
-            </div>
+            
+            {/* Render the Form Inputs right here */}
+            <ContactUsForm />
+            
         </div>
       </div>
 

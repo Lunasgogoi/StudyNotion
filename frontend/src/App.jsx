@@ -26,7 +26,7 @@ import Wishlist from "./components/core/Dashboard/WishList";
 import EditCourse from "./components/core/Dashboard/EditCourse"; // Don't forget to import this!
 import ViewCourse from "./pages/ViewCourse";
 import VideoDetails from "./components/core/ViewCourse/VideoDetails";
-
+import Search from "./pages/Search";
 
 
 function App() {
@@ -47,6 +47,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="catalog/:categoryName" element={<Catalog />} />
         <Route path="/courses/:courseId" element={<CourseDetails />} />
+        <Route path="/search/:searchQuery" element={<Search />} />
 
         <Route
           element={

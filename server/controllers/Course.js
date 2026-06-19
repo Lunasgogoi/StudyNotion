@@ -409,3 +409,41 @@ exports.deleteCourse = async (req, res) => {
         });
     }
 };
+
+exports.searchCourses = async (req, res) => {
+  try {
+    const { searchQuery } = req.body; // or req.query if you prefer a GET request
+
+    if (!searchQuery) {
+      return res.status(400).json({ success: false, message: "Search query is missing" });
+    }
+
+    // Use MongoDB $or operator to search across multiple fields
+    // $options: "i" makes it case-insensitive
+    const courses = await Course.find({
+      $or: [
+        { courseName: { $regex: searchQuery, $options: "i" } },
+        { courseDescription: { $regex: searchQuery, $options: "i" } },
+        { courseTags: { $regex: searchQuery, $options: "i" } } 
+      ],
+    //   status: "Published", // Make sure you only return published courses!
+    })
+    .populate("instructor")
+    .populate("category")
+    .populate("ratingsAndReviews")
+    .exec();
+
+    return res.status(200).json({
+      success: true,
+      data: courses,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch search results",
+      error: error.message,
+    });
+  }
+};

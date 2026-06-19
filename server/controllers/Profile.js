@@ -8,33 +8,59 @@ const Course = require("../models/Course"); // needed for enrolled courses
 // ================================
 exports.updateProfile = async (req, res) => {
     try {
-        const { dateOfBirth = "", about = "", contactNumber = "", gender } = req.body;
+        const {
+            firstName,
+            lastName,
+            dateOfBirth,
+            about,
+            contactNumber,
+            gender,
+        } = req.body;
 
         const id = req.user.id;
 
-        if (!contactNumber || !gender) {
+        if (!firstName || !lastName) {
             return res.status(400).json({
                 success: false,
-                message: "All required fields missing",
+                message: "First name and last name are required",
             });
         }
 
         const userDetails = await User.findById(id);
+        if (!userDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
         const profileId = userDetails.additionalDetails;
 
         const profileDetails = await Profile.findById(profileId);
+        if (!profileDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "Profile not found",
+            });
+        }
 
-        profileDetails.dateOfBirth = dateOfBirth;
-        profileDetails.about = about;
-        profileDetails.contactNumber = contactNumber;
-        profileDetails.gender = gender;
+        userDetails.firstName = firstName;
+        userDetails.lastName = lastName;
 
+        profileDetails.dateOfBirth = dateOfBirth || null;
+        profileDetails.about = about || "";
+        profileDetails.contactNumber = contactNumber || "";
+        profileDetails.gender = gender || "";
+
+        await userDetails.save();
         await profileDetails.save();
+
+        const updatedUserDetails = await User.findById(id).populate("additionalDetails");
 
         return res.status(200).json({
             success: true,
             message: "Profile updated successfully",
-            data: profileDetails,
+            data: updatedUserDetails,
         });
 
     } catch (error) {

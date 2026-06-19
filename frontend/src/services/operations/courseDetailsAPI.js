@@ -215,7 +215,7 @@ export const fetchCourseDetails = async (courseId) => {
 
 // ... existing imports and functions
 
-export const markLectureAsComplete = async (data, token) => {
+export const toggleLectureCompletion = async (data, token) => {
   let result = null
   const toastId = toast.loading("Loading...")
   try {
@@ -232,16 +232,17 @@ export const markLectureAsComplete = async (data, token) => {
       throw new Error(response.data.message)
     }
 
-    toast.success("Lecture Completed")
-    result = true
+    toast.success(response.data.message || "Lecture progress updated")
+    result = response.data
   } catch (error) {
-    console.log("MARK_LECTURE_AS_COMPLETE_API ERROR............", error)
+    console.log("TOGGLE_LECTURE_COMPLETION_API ERROR............", error)
     toast.error(getApiErrorMessage(error, "Could not update lecture progress"))
-    result = false
   }
   toast.dismiss(toastId)
   return result
 }
+
+export const markLectureAsComplete = toggleLectureCompletion
 
 export const createRating = async (data, token) => {
   const toastId = toast.loading("Saving review...")
@@ -269,4 +270,3 @@ export const createRating = async (data, token) => {
   toast.dismiss(toastId)
   return result
 }
-

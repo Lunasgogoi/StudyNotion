@@ -12,6 +12,7 @@ export const courseEndpoints = {
   DELETE_COURSE_API: BASE_URL + "/course/deleteCourse",
   COURSE_DETAILS_API: BASE_URL + "/course/getCourseDetails",
   UPDATE_COURSE_PROGRESS_API: BASE_URL + "/course/updateCourseProgress",
+  SEARCH_COURSES_API: BASE_URL + "/course/search",
 };
 
 // RATINGS AND REVIEWS ENDPOINTS
@@ -43,3 +44,7 @@ export const profileEndpoints = {
 export const catalogData = {
   CATALOGPAGEDATA_API: BASE_URL + "/course/getCategoryPageDetails",
 }
+
+export const contactusEndpoint = {
+  CONTACT_US_API: BASE_URL + "/reach/contact", // Adjust to match your backend route
+};

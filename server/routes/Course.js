@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
+const {searchCourses} = require("../controllers/Course");
 
 // ================================
 // Course Controllers Import
@@ -151,6 +151,9 @@ router.get("/getReviews", getAllRatingsAndReviews);;
 
 // Update course progress
 router.post("/updateCourseProgress", auth, isStudent, updateCourseProgress);
+
+// Search for courses
+router.post("/search", searchCourses)
 
 // Export the router
 module.exports = router;

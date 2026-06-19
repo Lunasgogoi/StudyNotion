@@ -124,6 +124,7 @@ export default function EditProfile() {
                 {/* 🔥 Buttons moved INSIDE the card, with a subtle top border 🔥 */}
                 <div className="mt-4 flex justify-end gap-3 pt-6 border-t border-richblack-700">
                     <button
+                        type="button"
                         onClick={() => navigate("/dashboard/my-profile")}
                         className="cursor-pointer rounded-md bg-richblack-700 py-2 px-5 font-semibold text-richblack-50 transition-all duration-200 hover:scale-95 hover:text-richblack-5"
                     >

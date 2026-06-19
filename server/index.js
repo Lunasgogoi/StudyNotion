@@ -37,7 +37,7 @@ app.use(cookieParser());
 
 app.use(
     cors({
-        origin: ["http://localhost:3000", "http://localhost:5173", "http://localhost:5174", "http://localhost:4000"],
+        origin:"*",
         credentials: true,
     })
 );
@@ -65,3 +65,6 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+const contactRoutes = require("./routes/Contact");
+app.use("/api/v1/reach", contactRoutes);

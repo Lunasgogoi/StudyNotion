@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from "react-redux"
 import { useLocation, useNavigate, useParams } from "react-router-dom"
 //import "video-react/dist/video-react.css"
 //import { Player, BigPlayButton } from "video-react"
-import { updateCompletedLectures } from "../../../slices/viewCourseSlices"
-import { markLectureAsComplete } from "../../../services/operations/courseDetailsAPI" // Uncomment when API is ready
+import { setCompletedLectures } from "../../../slices/viewCourseSlices"
+import { toggleLectureCompletion } from "../../../services/operations/courseDetailsAPI"
 
 export default function VideoDetails() {
   const { courseId, sectionId, subSectionId } = useParams()
@@ -87,14 +87,13 @@ export default function VideoDetails() {
   const handleLectureCompletion = async () => {
     setLoading(true)
     // Call the backend to save progress
-    const res = await markLectureAsComplete(
+    const res = await toggleLectureCompletion(
       { courseId: courseId, subsectionId: subSectionId },
       token
     )
 
-    // If the backend successfully saved it, update Redux so the UI shows the checkmark!
-    if (res) {
-      dispatch(updateCompletedLectures(subSectionId))
+    if (res?.success) {
+      dispatch(setCompletedLectures(res.data || []))
     }
     setLoading(false)
   }

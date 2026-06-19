@@ -1,5 +1,4 @@
 // src/pages/Home.jsx
-// import 'react'
 import { Link } from 'react-router-dom'
 import { FaArrowRight } from "react-icons/fa"
 import HighlightText from '../components/core/HomePage/HighlightText'
@@ -45,10 +44,10 @@ const Home = () => {
 
         {/* CTA Buttons */}
         <div className="flex flex-row gap-7 mt-8">
-          <Button active={true} linkto={"/signup"}>
+          <Button active={true} linkto={"/catalog/web-development"}>
             Learn More
           </Button>
-          <Button active={false} linkto={"/login"}>
+          <Button active={false} linkto={"/contact"}>
             Book a Demo
           </Button>
         </div>
@@ -95,7 +94,7 @@ const Home = () => {
             }}
             cta2={{
               btnText: "Learn more",
-              linkto: "/login",
+              linkto: "/about",
               active: false,
             }}
             codeblock={`<!DOCTYPE html>\n<html>\n<head><title>Example</title><link rel="stylesheet" href="styles.css">\n</head>\n<body>\n<h1><a href="/">Header</a>\n</h1>\n<nav><a href="one/">One</a><a href="two/">Two</a><a href="three/">Three</a>\n</nav>`}
@@ -118,12 +117,12 @@ const Home = () => {
             }
             cta1={{
               btnText: "Continue Lesson",
-              linkto: "/signup",
+              linkto: "/dashboard/enrolled-courses",
               active: true,
             }}
             cta2={{
               btnText: "Learn more",
-              linkto: "/login",
+              linkto: "/about",
               active: false,
             }}
             codeblock={`import React from 'react';\nimport Button from './Button';\n\nconst App = () => {\n  return (\n    <div>\n      <h1>Hello World</h1>\n      <Button text="Click Me" />\n    </div>\n  );\n}\nexport default App;`}
@@ -147,13 +146,13 @@ const Home = () => {
 
           <div className="flex flex-row gap-7 mt-20">
 
-            <Button active={true} linkto={"/signup"}>
+            <Button active={true} linkto={"/catalog/web-development"}>
               <div className="flex items-center gap-2 caret-amber-400">
                 Explore Full Catalog
                 <FaArrowRight />
               </div>
             </Button>
-            <Button active={false} linkto={"/signup"}>
+            <Button active={false} linkto={"/about"}>
               <div>
                 Learn More
               </div>
@@ -174,7 +173,7 @@ const Home = () => {
               <div className="text-[16px]">
                 The modern StudyNotion dictates its own terms. Today, to be a competitive specialist requires more than professional skills.
               </div>
-              <Button active={true} linkto={"/signup"}>
+              <Button active={true} linkto={"/about"}>
                 <div>Learn more</div>
               </Button>
             </div>
