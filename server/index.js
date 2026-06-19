@@ -37,21 +37,17 @@ const allowedOrigins = [
     "https://study-notion-iota-khaki-83.vercel.app",
     "https://study-notion-git-main-lunas-gogoi-s-projects.vercel.app",
     "https://studynotion-emet.onrender.com",
-    ...(process.env.FRONTEND_URLS || "")
-        .split(",")
-        .map((origin) => origin.trim())
-        .filter(Boolean),
 ];
 
 app.use(
     cors({
         origin: (origin, callback) => {
-            const isVercelPreview = origin?.endsWith(".vercel.app");
-
-            if (!origin || allowedOrigins.includes(origin) || isVercelPreview) {
+            // Allow requests with no origin (like Postman)
+            // Allow requests from your allowedOrigins array (localhost)
+            // Allow ANY request from a Vercel deployment
+            if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
                 return callback(null, true);
             }
-
             return callback(new Error(`CORS blocked origin: ${origin}`));
         },
         credentials: true,
