@@ -29,23 +29,29 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Add your Vercel URL right here! No trailing slash at the end.
 const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
     "https://study-notion-iota-khaki-83.vercel.app",
-    "https://study-notion-5bjh3on1h-lunas-gogoi-s-projects.vercel.app"
+    "https://study-notion-git-main-lunas-gogoi-s-projects.vercel.app",
+    "https://studynotion-emet.onrender.com",
+    ...(process.env.FRONTEND_URLS || "")
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean),
 ];
 
 app.use(
     cors({
         origin: (origin, callback) => {
-            // Allow if no origin (postman), if in the allowedOrigins array, OR if it's a Vercel preview link
-            if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+            const isVercelPreview = origin?.endsWith(".vercel.app");
+
+            if (!origin || allowedOrigins.includes(origin) || isVercelPreview) {
                 return callback(null, true);
             }
+
             return callback(new Error(`CORS blocked origin: ${origin}`));
         },
         credentials: true,

@@ -6,7 +6,7 @@ const isLocalFrontend =
   typeof window !== "undefined" &&
   ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
-const BASE_URL = isLocalFrontend ? LOCAL_BASE_URL : DEPLOYED_BASE_URL;
+export const BASE_URL = isLocalFrontend ? LOCAL_BASE_URL : DEPLOYED_BASE_URL;
 
 // COURSE ENDPOINTS
 export const courseEndpoints = {
