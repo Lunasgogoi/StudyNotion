@@ -31,9 +31,23 @@ app.use(express.json());
 
 app.use(cookieParser());
 
+const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "https://studynotion-emet.onrender.com",
+];
+
 app.use(
     cors({
-        origin:"https://studynotion-emet.onrender.com",
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error(`CORS blocked origin: ${origin}`));
+        },
         credentials: true,
     })
 );
@@ -61,12 +75,33 @@ app.get("/", (req, res) => {
 const contactRoutes = require("./routes/Contact");
 app.use("/api/v1/reach", contactRoutes);
 
-database.connect()
-    .then(() => {
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
-        });
-    })
-    .catch(() => {
-        process.exit(1);
-    });
+const startServer = async () => {
+    const deployedMongoUrl = process.env.MONGODB_URL;
+    const localMongoUrl = process.env.LOCAL_MONGODB_URL || "mongodb://127.0.0.1:27017/studynotion";
+
+    const mongoUrls = [
+        { label: "local MongoDB", url: localMongoUrl },
+        { label: "deployed MongoDB", url: deployedMongoUrl },
+    ].filter(({ url }) => Boolean(url));
+
+    for (const { label, url } of mongoUrls) {
+        try {
+            console.log(`Trying ${label}...`);
+            process.env.MONGODB_URL = url;
+            await database.connect();
+            console.log(`Connected using ${label}`);
+
+            app.listen(PORT, () => {
+                console.log(`Server is running on port ${PORT}`);
+            });
+            return;
+        } catch (error) {
+            console.error(`Could not connect using ${label}:`, error.message);
+        }
+    }
+
+    console.error("Could not connect to any MongoDB URL");
+    process.exit(1);
+};
+
+startServer();
