@@ -20,10 +20,6 @@ const fileUpload = require("express-fileupload");
 const PORT = process.env.PORT || 4000;
 
 
-database.connect();
-
-
-
 app.use(
     fileUpload({
         useTempFiles: true,
@@ -37,7 +33,7 @@ app.use(cookieParser());
 
 app.use(
     cors({
-        origin:"*",
+        origin:"https://studynotion-emet.onrender.com",
         credentials: true,
     })
 );
@@ -62,9 +58,15 @@ app.get("/", (req, res) => {
 
  //START
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
-
 const contactRoutes = require("./routes/Contact");
 app.use("/api/v1/reach", contactRoutes);
+
+database.connect()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    })
+    .catch(() => {
+        process.exit(1);
+    });
