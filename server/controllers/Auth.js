@@ -1,10 +1,27 @@
 const User = require("../models/User");
 const OTP = require("../models/OTP");
 const Profile = require("../models/Profile");
+const mailSender = require("../utils/mailSender");
+const otpTemplate = require("../mail/templates/emailVerificationTemplate");
 
 const otpGenerator = require("otp-generator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
+const isLocalDevelopmentRequest = (req) => {
+    if (process.env.NODE_ENV === "production") {
+        return false;
+    }
+
+    const origin = req.get("origin") || "";
+    const host = req.hostname || "";
+
+    return (
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
+        host === "localhost" ||
+        host === "127.0.0.1"
+    );
+};
 
 
 
@@ -14,7 +31,14 @@ const jwt = require("jsonwebtoken");
 // ================================
 exports.sendotp = async (req, res) => {
     try {
-        const { email } = req.body;
+        const email = req.body?.email?.trim().toLowerCase();
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Email is required",
+            });
+        }
 
         // check if user already exists
         const userPresent = await User.findOne({ email });
@@ -45,7 +69,32 @@ exports.sendotp = async (req, res) => {
         }
 
         // save OTP in DB
-        await OTP.create({ email, otp });
+        const otpDetails = await OTP.create({ email, otp });
+
+        try {
+            await mailSender(
+                email,
+                "Verification Email From StudyNotion",
+                otpTemplate(otp)
+            );
+        } catch (mailError) {
+            console.error("SENDOTP EMAIL ERROR:", mailError.message);
+
+            if (isLocalDevelopmentRequest(req)) {
+                return res.status(200).json({
+                    success: true,
+                    message: "OTP generated. Email delivery failed, so a development OTP was returned.",
+                    devOtp: otp,
+                });
+            }
+
+            await OTP.findByIdAndDelete(otpDetails._id);
+
+            return res.status(502).json({
+                success: false,
+                message: "Could not send verification email. Please check mail service configuration.",
+            });
+        }
 
         return res.status(200).json({
             success: true,
@@ -68,7 +117,6 @@ exports.sendotp = async (req, res) => {
 exports.signup = async (req, res) => {
     try {
         const {
-            email,
             firstName,
             lastName,
             password,
@@ -77,6 +125,7 @@ exports.signup = async (req, res) => {
             contactNumber,
             otp,
         } = req.body;
+        const email = req.body?.email?.trim().toLowerCase();
 
         // validation
         if (!email || !firstName || !lastName || !password || !confirmPassword || !otp) {

@@ -1,28 +1,36 @@
 const nodemailer = require("nodemailer");
 
-const mailSender = async (Email, title, body) => {
+const mailSender = async (email, title, body) => {
     try {
-        let transporter = nodemailer.createTransport({
-            host: process.env.MAIL_HOST,
+        const { MAIL_HOST, MAIL_USER, MAIL_PASS, MAIL_PORT, MAIL_SECURE } = process.env;
+
+        if (!MAIL_HOST || !MAIL_USER || !MAIL_PASS) {
+            throw new Error("Email service is not configured. Set MAIL_HOST, MAIL_USER, and MAIL_PASS.");
+        }
+
+        const transporter = nodemailer.createTransport({
+            host: MAIL_HOST,
+            port: Number(MAIL_PORT) || 587,
+            secure: MAIL_SECURE === "true",
             auth: {
-                user: process.env.MAIL_USER,
-                pass: process.env.MAIL_PASS,
-            }
+                user: MAIL_USER,
+                pass: MAIL_PASS,
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 10000,
         });
 
-        let info = await transporter.sendMail({
-            from: 'StudyNotion || CodeHelp - by Babbar',
-            to: Email,          // ✅ FIXED
-            subject: title,     // ✅ FIXED
-            html: body,         // ✅ FIXED
+        return transporter.sendMail({
+            from: `"StudyNotion" <${MAIL_USER}>`,
+            to: email,
+            subject: title,
+            html: body,
         });
-
-        return info; // ✅ important for logging
+    } catch (error) {
+        console.log("Mail Sender Error:", error.message);
+        throw error;
     }
-    catch (error) {
-        console.log("Mail Sender Error:", error);
-        throw error; // better to throw
-    }
-}
+};
 
 module.exports = mailSender;
