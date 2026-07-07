@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { BiInfoCircle } from "react-icons/bi"
+import { FiClock, FiShield, FiShoppingCart } from "react-icons/fi"
 import { HiOutlineGlobeAlt } from "react-icons/hi"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate, useParams } from "react-router-dom"
@@ -96,6 +97,109 @@ const CourseDetails = () => {
     studentsEnrolled,
     createdAt,
   } = response.data
+  const isEnrolled = studentsEnrolled?.includes(user?._id)
+  const isInCart = cart.some((item) => item._id === course_id)
+  const isWishlisted = wishlist.some((item) => item._id === course_id)
+
+  const purchaseActions = (
+    <div className="flex flex-col gap-3">
+      {isEnrolled ? (
+        <button
+          className="rounded-md bg-yellow-50 px-6 py-3.5 font-semibold text-richblack-900 transition-all hover:bg-yellow-100"
+          onClick={() => navigate("/dashboard/enrolled-courses")}
+        >
+          Go to Course
+        </button>
+      ) : (
+        <>
+          <button
+            className="rounded-md bg-yellow-50 px-6 py-3.5 font-semibold text-richblack-900 shadow-[0_10px_24px_rgba(255,249,112,0.18)] transition-all hover:bg-yellow-100"
+            onClick={handleBuyCourse}
+          >
+            Buy Now
+          </button>
+
+          {isInCart ? (
+            <button
+              onClick={() => navigate("/dashboard/cart")}
+              className="flex items-center justify-center gap-2 rounded-md border border-richblack-600 bg-richblack-900 px-6 py-3.5 font-semibold text-richblack-5 transition-all hover:border-richblack-400 hover:bg-richblack-800"
+            >
+              <FiShoppingCart />
+              Go to Cart
+            </button>
+          ) : (
+            <button
+              onClick={() => dispatch(addToCart(response.data))}
+              className="flex items-center justify-center gap-2 rounded-md border border-richblack-600 bg-richblack-900 px-6 py-3.5 font-semibold text-richblack-5 transition-all hover:border-richblack-400 hover:bg-richblack-800"
+            >
+              <FiShoppingCart />
+              Add to Cart
+            </button>
+          )}
+        </>
+      )}
+
+      {!isEnrolled && (
+        isWishlisted ? (
+          <button
+            onClick={() => dispatch(removeFromWishlist(course_id))}
+            className="flex items-center justify-center gap-2 rounded-md border border-pink-700 bg-pink-500/10 py-3 text-pink-200 transition-all hover:bg-pink-500/15"
+          >
+            <AiFillHeart size={20} className="text-pink-200" />
+            Remove from Wishlist
+          </button>
+        ) : (
+          <button
+            onClick={() => dispatch(addToWishlist(response.data))}
+            className="flex items-center justify-center gap-2 rounded-md border border-richblack-600 bg-richblack-700/40 py-3 text-richblack-100 transition-all hover:border-richblack-500 hover:text-richblack-5"
+          >
+            <AiOutlineHeart size={20} />
+            Add to Wishlist
+          </button>
+        )
+      )}
+    </div>
+  )
+
+  const purchaseCard = (
+    <div className="overflow-hidden rounded-lg border border-richblack-600 bg-richblack-800 text-richblack-5 shadow-[0_18px_55px_rgba(0,0,0,0.35)]">
+      <div className="relative aspect-video overflow-hidden bg-richblack-700">
+        <img
+          src={thumbnail}
+          alt={courseName}
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-richblack-900/75 to-transparent" />
+      </div>
+
+      <div className="p-5">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-sm text-richblack-300">Course price</p>
+            <p className="mt-1 text-4xl font-bold tracking-tight text-richblack-5">Rs. {price}</p>
+          </div>
+          <div className="rounded-md border border-yellow-50/30 bg-yellow-50/10 px-3 py-1.5 text-sm font-medium text-yellow-25">
+            Best value
+          </div>
+        </div>
+
+        <div className="mt-5">
+          {purchaseActions}
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 border-t border-richblack-700 pt-5 text-sm text-richblack-200 sm:grid-cols-2 lg:grid-cols-1">
+          <p className="flex items-center gap-2">
+            <FiShield className="text-yellow-25" />
+            30-Day Money-Back Guarantee
+          </p>
+          <p className="flex items-center gap-2">
+            <FiClock className="text-yellow-25" />
+            Learn at your own pace
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div className="flex flex-col bg-richblack-900 text-white relative">
@@ -146,79 +250,12 @@ const CourseDetails = () => {
       </div>
 
       {/* ===================== FLOATING BUY CARD ===================== */}
-      <div className="right-[1rem] top-[60px] mx-auto hidden min-h-[600px] w-1/3 max-w-[410px] translate-y-24 md:translate-y-0 lg:absolute lg:block">
-        <div className="flex flex-col gap-4 rounded-md bg-richblack-700 p-4 text-richblack-5 border border-richblack-600">
-          <img src={thumbnail} alt="thumbnail" className="max-h-[300px] min-h-[180px] w-[400px] overflow-hidden rounded-2xl object-cover md:max-w-full" />
-          
-          <div className="px-4">
-            <div className="space-x-3 pb-4 text-3xl font-semibold">
-              Rs. {price}
-            </div>
-            
-            <div className="flex flex-col gap-4">
-              
-              {/* FIX 1: ALREADY ENROLLED LOGIC */}
-              {studentsEnrolled?.includes(user?._id) ? (
-                <button 
-                  className="rounded-md bg-yellow-50 px-6 py-3 font-semibold text-richblack-900 transition-all hover:scale-95" 
-                  onClick={() => navigate("/dashboard/enrolled-courses")}
-                >
-                  Go to Course
-                </button>
-              ) : (
-                <>
-                  <button 
-                    className="rounded-md bg-yellow-50 px-6 py-3 font-semibold text-richblack-900 transition-all hover:scale-95" 
-                    onClick={handleBuyCourse}
-                  >
-                    Buy Now
-                  </button>
-                  
-                  {cart.some((item) => item._id === course_id) ? (
-                    <button 
-                      onClick={() => navigate("/dashboard/cart")}
-                      className="rounded-md bg-richblack-800 px-6 py-3 font-semibold text-richblack-5 border border-richblack-700 transition-all hover:scale-95 hover:bg-richblack-900" 
-                    >
-                      Go to Cart
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => dispatch(addToCart(response.data))}
-                      className="rounded-md bg-richblack-800 px-6 py-3 font-semibold text-richblack-5 border border-richblack-700 transition-all hover:scale-95 hover:bg-richblack-900" 
-                    >
-                      Add to Cart
-                    </button>
-                  )}
-                </>
-              )}
+      <div className="right-[1rem] top-[84px] mx-auto hidden w-1/3 max-w-[410px] lg:absolute lg:block">
+        {purchaseCard}
+      </div>
 
-              {/* Dynamic Wishlist Button Toggle (Only show if NOT enrolled) */}
-              {!studentsEnrolled?.includes(user?._id) && (
-                wishlist.some((item) => item._id === course_id) ? (
-                  <button
-                    onClick={() => dispatch(removeFromWishlist(course_id))}
-                    className="flex items-center justify-center gap-2 rounded-md border border-pink-700 bg-transparent py-3 text-pink-200 transition-all hover:scale-95"
-                  >
-                    <AiFillHeart size={20} className="text-pink-200" />
-                    Remove from Wishlist
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => dispatch(addToWishlist(response.data))}
-                    className="flex items-center justify-center gap-2 rounded-md border border-richblack-600 bg-transparent py-3 text-richblack-100 transition-all hover:scale-95 hover:text-richblack-5"
-                  >
-                    <AiOutlineHeart size={20} />
-                    Add to Wishlist
-                  </button>
-                )
-              )}
-            </div>
-            
-            <p className="pb-3 pt-6 text-center text-sm text-richblack-25">
-              30-Day Money-Back Guarantee
-            </p>
-          </div>
-        </div>
+      <div className="mx-auto mt-8 w-11/12 max-w-maxContentTab lg:hidden">
+        {purchaseCard}
       </div>
 
       {/* ===================== MAIN CONTENT (LEFT SIDE) ===================== */}

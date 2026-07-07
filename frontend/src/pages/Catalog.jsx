@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom' // <-- Cleaned up imports and added Link
+import { useEffect, useMemo, useState } from "react"
+import { useParams } from "react-router-dom"
 
-// Import the service functions
-import { fetchCourseCategories } from '../services/operations/courseDetailsAPI'
-import { getCatalogPageData } from '../services/operations/pageAndComponentData'
-import GetAvgRating from '../utils/avgRating'
-import RatingStars from "../components/common/RatingStars"
+import CourseCard from "../components/core/HomePage/CourseCard"
+import { fetchCourseCategories } from "../services/operations/courseDetailsAPI"
+import { getCatalogPageData } from "../services/operations/pageAndComponentData"
 
 const Catalog = () => {
   const { categoryName } = useParams()
@@ -13,116 +11,100 @@ const Catalog = () => {
   const [categoryId, setCategoryId] = useState("")
   const [catalogPageData, setCatalogPageData] = useState(null)
 
-  // 1. Fetch all categories and find the ID of the one in the URL
   useEffect(() => {
     const getCategories = async () => {
       const res = await fetchCourseCategories()
-
-      // Find the category that matches the URL param (e.g., "web-development")
-      const category_id = res?.filter(
+      const category_id = res?.find(
         (ct) => ct.name.split(" ").join("-").toLowerCase() === categoryName
-      )[0]?._id
+      )?._id
 
       setCategoryId(category_id)
     }
+
     getCategories()
   }, [categoryName])
 
-  // 2. Once we have the Category ID, fetch the specific Catalog Page Data
   useEffect(() => {
     const getCategoryDetails = async () => {
       if (categoryId) {
         const res = await getCatalogPageData(categoryId)
-        console.log("CATALOG PAGE DATA:", res)
         setCatalogPageData(res)
       }
     }
+
     getCategoryDetails()
   }, [categoryId])
 
+  const selectedCategory = catalogPageData?.data?.selectedCategory
+  const visibleCourses = useMemo(() => {
+    const courses = [...(selectedCategory?.courses || [])]
+
+    if (activeTab === 2) {
+      return courses.sort((a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0))
+    }
+
+    return courses.sort(
+      (a, b) => (b?.studentsEnrolled?.length || 0) - (a?.studentsEnrolled?.length || 0)
+    )
+  }, [activeTab, selectedCategory?.courses])
+
   return (
     <div className="text-white">
-      {/* Hero Section */}
       <div className="box-content bg-richblack-800 px-4">
         <div className="mx-auto flex min-h-[260px] max-w-maxContentTab flex-col justify-center gap-4 lg:max-w-maxContent">
           <p className="text-sm text-richblack-300">
-            Home / Catalog / <span className="text-yellow-25">
-              {catalogPageData?.data?.selectedCategory?.name || categoryName}
+            Home / Catalog /{" "}
+            <span className="text-yellow-25">
+              {selectedCategory?.name || categoryName}
             </span>
           </p>
           <p className="text-3xl text-richblack-5">
-            {catalogPageData?.data?.selectedCategory?.name}
+            {selectedCategory?.name}
           </p>
           <p className="max-w-[870px] text-richblack-200">
-            {catalogPageData?.data?.selectedCategory?.description}
+            {selectedCategory?.description}
           </p>
         </div>
       </div>
 
-      {/* Main Content Section */}
       <div className="mx-auto box-content w-full max-w-maxContentTab px-4 py-12 lg:max-w-maxContent">
-        <div className="section_heading text-2xl font-bold text-richblack-5 lg:text-3xl">
-          Courses to get you started
+        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+          <div>
+            <div className="section_heading text-2xl font-bold text-richblack-5 lg:text-3xl">
+              Courses to get you started
+            </div>
+            <p className="mt-2 text-richblack-300">
+              {visibleCourses.length} course{visibleCourses.length === 1 ? "" : "s"} available in this catalog
+            </p>
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="my-4 flex border-b border-b-richblack-600 text-sm">
-          <p
-            className={`px-4 py-2 cursor-pointer ${activeTab === 1 ? "border-b border-b-yellow-25 text-yellow-25" : "text-richblack-50"}`}
+        <div className="my-5 flex border-b border-b-richblack-600 text-sm">
+          <button
+            type="button"
+            className={`px-4 py-2 transition-colors ${activeTab === 1 ? "border-b border-b-yellow-25 text-yellow-25" : "text-richblack-50 hover:text-richblack-5"}`}
             onClick={() => setActiveTab(1)}
           >
             Most Popular
-          </p>
-          <p
-            className={`px-4 py-2 cursor-pointer ${activeTab === 2 ? "border-b border-b-yellow-25 text-yellow-25" : "text-richblack-50"}`}
+          </button>
+          <button
+            type="button"
+            className={`px-4 py-2 transition-colors ${activeTab === 2 ? "border-b border-b-yellow-25 text-yellow-25" : "text-richblack-50 hover:text-richblack-5"}`}
             onClick={() => setActiveTab(2)}
           >
             New
-          </p>
+          </button>
         </div>
 
-        {/* Course Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {catalogPageData?.data?.selectedCategory?.courses?.length === 0 ? (
-            <p className="text-xl text-richblack-200">No courses found for this category.</p>
+          {visibleCourses.length === 0 ? (
+            <div className="col-span-full flex min-h-[220px] items-center justify-center rounded-lg border border-richblack-700 bg-richblack-800 px-6 text-center text-xl text-richblack-200">
+              No courses found for this category.
+            </div>
           ) : (
-            catalogPageData?.data?.selectedCategory?.courses?.map((course, index) => {
-
-              // 🔥 Safely check for both spelling variations
-              const reviewsArr = course?.ratingsAndReviews || []
-              const ratingCount = reviewsArr.length
-              const avgReviewCount = GetAvgRating(reviewsArr)
-
-              return (
-                /* 🔥 The Link tag is now wrapping the card, making the whole thing clickable 🔥 */
-                <Link to={`/courses/${course._id}`} key={index}>
-                  <div className="flex flex-col gap-2 cursor-pointer hover:scale-[1.02] transition-all duration-200">
-                    <img
-                      src={course?.thumbnail}
-                      alt={course?.courseName}
-                      className="h-[250px] w-full rounded-xl object-cover"
-                    />
-                    <p className="text-xl text-richblack-5 mt-2">{course?.courseName}</p>
-                    <p className="text-sm text-richblack-50">
-                      {course?.instructor?.firstName} {course?.instructor?.lastName}
-                    </p>
-
-                    {/* DYNAMIC RATING SECTION */}
-                    <div className="flex items-center gap-2">
-                      {ratingCount > 0 && (
-                        <span className="text-yellow-5">{avgReviewCount}</span>
-                      )}
-                      <RatingStars Review_Count={avgReviewCount} Star_Size={20} />
-                      <span className="text-richblack-400">
-                        {ratingCount > 0 ? `${ratingCount} Ratings` : "No ratings yet"}
-                      </span>
-                    </div>
-
-                    <p className="text-xl text-richblack-5">Rs. {course?.price}</p>
-                  </div>
-                </Link>
-              )
-            })
+            visibleCourses.map((course) => (
+              <CourseCard key={course._id} course={course} />
+            ))
           )}
         </div>
       </div>
