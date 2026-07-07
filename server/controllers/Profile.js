@@ -1,7 +1,42 @@
 const Profile = require("../models/Profile");
 const User = require("../models/User");
 const Course = require("../models/Course"); // needed for enrolled courses
+const CourseProgress = require("../models/CourseProgress");
 
+const parseDurationToSeconds = (duration) => {
+    if (duration === undefined || duration === null || duration === "") return 0;
+
+    if (typeof duration === "number") {
+        return Number.isFinite(duration) ? Math.max(0, duration) : 0;
+    }
+
+    const normalized = String(duration).trim();
+    if (!normalized) return 0;
+
+    if (normalized.includes(":")) {
+        const parts = normalized.split(":").map((part) => Number(part));
+        if (parts.some((part) => Number.isNaN(part))) return 0;
+        return parts.reduce((total, part) => total * 60 + part, 0);
+    }
+
+    const numericDuration = Number(normalized);
+    return Number.isFinite(numericDuration) ? Math.max(0, numericDuration) : 0;
+};
+
+const getCourseMetrics = (courseContent = []) => {
+    return courseContent.reduce(
+        (metrics, section) => {
+            const lectures = section?.subSection || [];
+            metrics.totalNoOfLectures += lectures.length;
+            metrics.totalDurationInSeconds += lectures.reduce(
+                (total, lecture) => total + parseDurationToSeconds(lecture?.timeDuration || lecture?.duration),
+                0
+            );
+            return metrics;
+        },
+        { totalNoOfLectures: 0, totalDurationInSeconds: 0 }
+    );
+};
 
 // ================================
 // UPDATE PROFILE
@@ -215,10 +250,38 @@ exports.getEnrolledCourse = async (req, res) => {
             });
         }
 
+        const progressDocs = await CourseProgress.find({
+            userId,
+            courseId: { $in: userDetails.courses.map((course) => course._id) },
+        }).lean();
+
+        const progressByCourseId = new Map(
+            progressDocs.map((progress) => [progress.courseId.toString(), progress])
+        );
+
+        const coursesWithProgress = userDetails.courses.map((course) => {
+            const courseObject = course.toObject();
+            const metrics = getCourseMetrics(courseObject.courseContent);
+            const progress = progressByCourseId.get(courseObject._id.toString());
+            const completedVideos = (progress?.completedVideos || []).map((id) => id.toString());
+            const completedLecturesCount = completedVideos.length;
+            const progressPercentage = metrics.totalNoOfLectures > 0
+                ? Math.round((completedLecturesCount / metrics.totalNoOfLectures) * 100)
+                : 0;
+
+            return {
+                ...courseObject,
+                ...metrics,
+                completedVideos,
+                completedLecturesCount,
+                progressPercentage,
+            };
+        });
+
         return res.status(200).json({
             success: true,
             message: "Enrolled courses fetched successfully",
-            data: userDetails.courses,
+            data: coursesWithProgress,
         });
 
     } catch (error) {

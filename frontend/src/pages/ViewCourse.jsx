@@ -29,7 +29,7 @@ export default function ViewCourse() {
       // Load all the data into our new Redux Slice
       dispatch(setCourseSectionData(courseData.courseDetails.courseContent))
       dispatch(setEntireCourseData(courseData.courseDetails))
-      dispatch(setCompletedLectures(courseData.completedVideos || []))
+      dispatch(setCompletedLectures((courseData.completedVideos || []).map((id) => id.toString())))
       
       // Calculate total lectures
       let lectures = 0
@@ -42,14 +42,14 @@ export default function ViewCourse() {
   }, [courseId, token, dispatch])
 
   return (
-    <div className="relative flex min-h-[calc(100vh-3.5rem)]">
+    <div className="relative flex min-h-[calc(100vh-3.5rem)] bg-richblack-900">
       
       {/* 1. The Left Sidebar (List of videos) */}
       <VideoDetailsSidebar setReviewModal={setReviewModal} />
       
       {/* 2. The Right Side (The actual Video Player) */}
       <div className="h-[calc(100vh-3.5rem)] flex-1 overflow-auto bg-richblack-900">
-        <div className="mx-6">
+        <div className="mx-auto w-full max-w-[1500px] px-5 py-6">
           {/* <Outlet /> renders whatever video matches the current URL */}
           <Outlet /> 
         </div>

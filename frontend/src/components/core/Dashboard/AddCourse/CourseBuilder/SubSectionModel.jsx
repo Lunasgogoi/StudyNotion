@@ -27,6 +27,27 @@ export default function SubSectionModal({
   const { course } = useSelector((state) => state.course)
   const { token } = useSelector((state) => state.auth)
 
+  const getVideoDuration = (file) => new Promise((resolve) => {
+    if (!(file instanceof File)) {
+      resolve(null)
+      return
+    }
+
+    const video = document.createElement("video")
+    const objectUrl = URL.createObjectURL(file)
+
+    video.preload = "metadata"
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(objectUrl)
+      resolve(Math.round(video.duration || 0))
+    }
+    video.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      resolve(null)
+    }
+    video.src = objectUrl
+  })
+
   useEffect(() => {
     if (view || edit) {
       setValue("lectureTitle", modalData.title)
@@ -48,11 +69,12 @@ export default function SubSectionModal({
   }
 
   const handleEditSubsection = async (data) => {
+    const videoDuration = await getVideoDuration(data.lectureVideo)
     const formData = new FormData()
     formData.append("subSectionId", modalData._id)
     formData.append("title", data.lectureTitle)
     formData.append("description", data.lectureDesc)
-    formData.append("timeDuration", modalData.timeDuration || "0")
+    formData.append("timeDuration", videoDuration ?? modalData.timeDuration ?? "0")
 
     if (data.lectureVideo && data.lectureVideo !== modalData.videoUrl) {
       formData.append("video", data.lectureVideo)
@@ -99,10 +121,11 @@ export default function SubSectionModal({
     }
 
     const formData = new FormData()
+    const videoDuration = await getVideoDuration(data.lectureVideo)
     formData.append("sectionId", modalData)
     formData.append("title", data.lectureTitle)
     formData.append("description", data.lectureDesc)
-    formData.append("timeDuration", "0")
+    formData.append("timeDuration", videoDuration ?? "0")
     formData.append("video", data.lectureVideo)
 
     setLoading(true)

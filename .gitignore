@@ -9,3 +9,5 @@ frontend/dist/
 *.log
 .vscode/
 .DS_Store
+
+todo.txt
