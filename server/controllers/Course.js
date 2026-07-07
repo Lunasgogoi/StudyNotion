@@ -10,6 +10,47 @@ const SubSection = require("../models/SubSection");
 const CourseProgress = require("../models/CourseProgress");
 const jwt = require("jsonwebtoken");
 
+const parseListField = (value) => {
+    if (Array.isArray(value)) {
+        return value.map((item) => String(item).trim()).filter(Boolean);
+    }
+
+    if (typeof value !== "string") {
+        return [];
+    }
+
+    const trimmedValue = value.trim();
+
+    if (!trimmedValue) {
+        return [];
+    }
+
+    try {
+        const parsedValue = JSON.parse(trimmedValue);
+        return Array.isArray(parsedValue)
+            ? parsedValue.map((item) => String(item).trim()).filter(Boolean)
+            : [];
+    } catch (error) {
+        return trimmedValue
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean);
+    }
+};
+
+const isInstructorOwner = (course, instructorId) => {
+    return course?.instructor?.toString() === instructorId?.toString();
+};
+
+const parseCoursePrice = (coursePrice) => {
+    const price = Number(coursePrice);
+    return Number.isFinite(price) && price >= 0 ? price : null;
+};
+
+const publicCourseFilter = {
+    $or: [{ status: "Published" }, { status: { $exists: false } }],
+};
+
 exports.createCourse = async (req, res) => {
     try {
 
@@ -37,6 +78,8 @@ exports.createCourse = async (req, res) => {
             coursePrice,
             courseTags,
             category,
+            instructions,
+            status,
         } = req.body;
 
         // =========================
@@ -55,7 +98,10 @@ exports.createCourse = async (req, res) => {
         if (
             !courseName ||
             !courseDescription ||
-            !coursePrice ||
+            !whatYouWillLearn ||
+            coursePrice === undefined ||
+            coursePrice === null ||
+            coursePrice === "" ||
             !category
         ) {
             return res.status(400).json({
@@ -114,27 +160,20 @@ exports.createCourse = async (req, res) => {
         // TAGS HANDLING
         // =========================
 
-        let tags = [];
-
-        if (Array.isArray(courseTags)) {
-            tags = courseTags;
-        }
-        else if (typeof courseTags === "string") {
-            try {
-                const parsedTags = JSON.parse(courseTags);
-                tags = Array.isArray(parsedTags) ? parsedTags : [];
-            } catch (error) {
-                tags = courseTags
-                    .split(",")
-                    .map(tag => tag.trim())
-                    .filter(tag => tag.length > 0);
-            }
-        }
+        const tags = parseListField(courseTags);
 
         if (tags.length === 0) {
             return res.status(400).json({
                 success: false,
                 message: "At least one tag is required",
+            });
+        }
+
+        const price = parseCoursePrice(coursePrice);
+        if (price === null) {
+            return res.status(400).json({
+                success: false,
+                message: "Course price must be a valid non-negative number",
             });
         }
 
@@ -155,9 +194,11 @@ exports.createCourse = async (req, res) => {
             courseName,
             courseDescription,
             whatYouWillLearn,
-            price: Number(coursePrice),
+            price,
             category,
             courseTags: tags,
+            instructions: parseListField(instructions),
+            status: status === "Published" ? "Published" : "Draft",
             instructor: instructorDetails._id,
             thumbnail: thumbnailImage.secure_url,
         });
@@ -217,9 +258,10 @@ exports.createCourse = async (req, res) => {
 exports.getAllCourses = async (req, res) => {
     try {
         // Fetch all courses
-        const courses = await Course.find({})
+        const courses = await Course.find(publicCourseFilter)
             .populate({
                 path: "instructor",
+                select: "firstName lastName email accountType image additionalDetails",
                 populate: {
                     path: "additionalDetails", // ✅ fixed typo
                 },
@@ -263,6 +305,7 @@ exports.getCourseDetails = async (req, res) => {
         const courseDetails = await Course.findById(courseId)
             .populate({
                 path: "instructor",
+                select: "firstName lastName email accountType image additionalDetails",
                 populate: {
                     path: "additionalDetails",
                 },
@@ -285,8 +328,7 @@ exports.getCourseDetails = async (req, res) => {
 
         let completedVideos = [];
         const token = req.cookies?.token ||
-            req.header("Authorization")?.replace("Bearer ", "") ||
-            req.body.token;
+            req.header("Authorization")?.replace("Bearer ", "");
 
         if (token) {
             try {
@@ -355,7 +397,17 @@ exports.deleteCourse = async (req, res) => {
         // 1. Find the course
         const course = await Course.findById(courseId);
         if (!course) {
-            return res.status(404).json({ message: "Course not found" });
+            return res.status(404).json({
+                success: false,
+                message: "Course not found",
+            });
+        }
+
+        if (!isInstructorOwner(course, req.user.id)) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not allowed to delete this course",
+            });
         }
 
         // 2. Un-enroll students from the course
@@ -421,14 +473,18 @@ exports.searchCourses = async (req, res) => {
     // Use MongoDB $or operator to search across multiple fields
     // $options: "i" makes it case-insensitive
     const courses = await Course.find({
-      $or: [
-        { courseName: { $regex: searchQuery, $options: "i" } },
-        { courseDescription: { $regex: searchQuery, $options: "i" } },
-        { courseTags: { $regex: searchQuery, $options: "i" } } 
+      $and: [
+        publicCourseFilter,
+        {
+          $or: [
+            { courseName: { $regex: searchQuery, $options: "i" } },
+            { courseDescription: { $regex: searchQuery, $options: "i" } },
+            { courseTags: { $regex: searchQuery, $options: "i" } },
+          ],
+        },
       ],
-    //   status: "Published", // Make sure you only return published courses!
     })
-    .populate("instructor")
+    .populate("instructor", "firstName lastName email accountType image")
     .populate("category")
     .populate("ratingsAndReviews")
     .exec();
@@ -443,6 +499,180 @@ exports.searchCourses = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch search results",
+      error: error.message,
+    });
+  }
+};
+
+// ================================
+// EDIT COURSE - Updates existing course
+// ================================
+exports.editCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const updateData = {};
+
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course ID",
+      });
+    }
+
+    // Validate course exists
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    if (!isInstructorOwner(course, req.user.id)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to edit this course",
+      });
+    }
+
+    const {
+      courseName,
+      courseDescription,
+      whatYouWillLearn,
+      coursePrice,
+      courseTags,
+      category,
+      instructions,
+      status,
+    } = req.body;
+
+    if (courseName?.trim()) {
+      updateData.courseName = courseName.trim();
+    }
+
+    if (courseDescription?.trim()) {
+      updateData.courseDescription = courseDescription.trim();
+    }
+
+    if (whatYouWillLearn?.trim()) {
+      updateData.whatYouWillLearn = whatYouWillLearn.trim();
+    }
+
+    if (coursePrice !== undefined && coursePrice !== null && coursePrice !== "") {
+      const price = parseCoursePrice(coursePrice);
+      if (price === null) {
+        return res.status(400).json({
+          success: false,
+          message: "Course price must be a valid non-negative number",
+        });
+      }
+
+      updateData.price = price;
+    }
+
+    if (category?.trim()) {
+      if (!mongoose.Types.ObjectId.isValid(category)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid category ID",
+        });
+      }
+
+      const categoryDetails = await Category.findById(category);
+      if (!categoryDetails) {
+        return res.status(404).json({
+          success: false,
+          message: "Category not found",
+        });
+      }
+
+      updateData.category = category;
+    }
+
+    // =========================
+    // HANDLE THUMBNAIL UPDATE
+    // =========================
+    if (req.files && req.files.thumbnailImage) {
+      const thumbnail = req.files.thumbnailImage;
+      const uploadedThumbnail = await uploadImageToCloudinary(
+        thumbnail,
+        process.env.FOLDER_NAME
+      );
+      updateData.thumbnail = uploadedThumbnail.secure_url;
+    }
+
+    // =========================
+    // HANDLE TAGS
+    // =========================
+    if (courseTags !== undefined) {
+      const tags = parseListField(courseTags);
+      if (tags.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "At least one tag is required",
+        });
+      }
+
+      updateData.courseTags = tags;
+    }
+
+    if (instructions !== undefined) {
+      const parsedInstructions = parseListField(instructions);
+      updateData.instructions = parsedInstructions;
+    }
+
+    if (status !== undefined) {
+      if (!["Draft", "Published"].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid course status",
+        });
+      }
+
+      updateData.status = status;
+    }
+
+    // =========================
+    // UPDATE COURSE
+    // =========================
+    const updatedCourse = await Course.findByIdAndUpdate(
+      courseId,
+      { $set: updateData },
+      { new: true }
+    )
+      .populate("instructor", "firstName lastName email accountType image")
+      .populate("category")
+      .populate("ratingsAndReviews")
+      .populate({
+        path: "courseContent",
+        populate: {
+          path: "subSection",
+        },
+      });
+
+    if (
+      updateData.category &&
+      course.category?.toString() !== updateData.category.toString()
+    ) {
+      await Category.findByIdAndUpdate(course.category, {
+        $pull: { courses: courseId },
+      });
+      await Category.findByIdAndUpdate(updateData.category, {
+        $addToSet: { courses: courseId },
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Course updated successfully",
+      data: updatedCourse,
+    });
+
+  } catch (error) {
+    console.error("EDIT COURSE ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update course",
       error: error.message,
     });
   }

@@ -3,6 +3,7 @@ import { apiConnector } from "../apiConnector";
 import rzpLogo from "../../assets/Logo/rzp_logo.png" // Make sure you have a logo image here, or remove this line
 import { setPaymentLoading } from "../../slices/courseSlice";
 import { resetCart } from "../../slices/cartSlice";
+import { paymentEndpoints } from "../apis";
 
 
 // Load the Razorpay SDK script dynamically
@@ -25,11 +26,12 @@ export async function buyCourse(token, courses, userDetails, navigate, dispatch)
         const res = await loadScript("https://checkout.razorpay.com/v1/checkout.js");
         if (!res) {
             toast.error("Razorpay SDK failed to load");
+            toast.dismiss(toastId);
             return;
         }
 
         // 2. Initiate the order on your backend
-        const orderResponse = await apiConnector("POST", "http://localhost:4000/api/v1/payment/capturePayment",
+        const orderResponse = await apiConnector("POST", paymentEndpoints.CAPTURE_PAYMENT_API,
             { courses },
             { Authorization: `Bearer ${token}` }
         );
@@ -71,6 +73,7 @@ export async function buyCourse(token, courses, userDetails, navigate, dispatch)
         // Now it will display the specific error message your backend sent!
         toast.error(error.message || "Could not make Payment");
     }
+    toast.dismiss(toastId);
 }
 
 // Helper function to verify payment on your backend
@@ -78,7 +81,7 @@ async function verifyPayment(bodyData, token, navigate, dispatch) {
     const toastId = toast.loading("Verifying Payment....");
     dispatch(setPaymentLoading(true));
     try {
-        const response = await apiConnector("POST", "http://localhost:4000/api/v1/payment/verifyPayment", bodyData, {
+        const response = await apiConnector("POST", paymentEndpoints.VERIFY_PAYMENT_API, bodyData, {
             Authorization: `Bearer ${token}`,
         });
 

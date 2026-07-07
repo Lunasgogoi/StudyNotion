@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import { useNavigate, Link } from "react-router-dom"
+import { Link } from "react-router-dom"
 import InstructorChart from "./InstructorChart"
 import { getInstructorData } from "../../../../services/operations/profileAPI"
 import { fetchInstructorCourses } from "../../../../services/operations/courseDetailsAPI"
@@ -9,24 +9,18 @@ import { fetchInstructorCourses } from "../../../../services/operations/courseDe
 export default function Instructor() {
   const { token } = useSelector((state) => state.auth)
   const { user } = useSelector((state) => state.profile)
-  const navigate = useNavigate()
 
-  // TODO: Replace with real API call (e.g., getInstructorData & fetchInstructorCourses)
   const [instructorData, setInstructorData] = useState(null)
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // FAKE DATA FOR UI PREVIEW - REMOVE ONCE API IS CONNECTED
   useEffect(() => {
     const getCourseDataWithStats = async () => {
       setLoading(true)
-      // Call both APIs at the same time
       const instructorApiData = await getInstructorData(token)
       const result = await fetchInstructorCourses(token)
 
-      console.log("Instructor API Data: ", instructorApiData)
-
-      if (instructorApiData.length) {
+      if (instructorApiData?.length) {
         setInstructorData(instructorApiData)
       }
       if (result) {
@@ -35,7 +29,7 @@ export default function Instructor() {
       setLoading(false)
     }
     getCourseDataWithStats()
-  }, [])
+  }, [token])
 
   const totalAmount = instructorData?.reduce((acc, curr) => acc + curr.totalAmountGenerated, 0)
   const totalStudents = instructorData?.reduce((acc, curr) => acc + curr.totalStudentsEnrolled, 0)

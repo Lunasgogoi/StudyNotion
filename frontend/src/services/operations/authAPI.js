@@ -100,7 +100,6 @@ export function login(email, password, navigate) {
       dispatch(loadCartForUser(response.data.user))
       dispatch(loadWishlistForUser(response.data.user))
       
-      // TODO: Save user data (name, image) to a profileSlice later!
       navigate("/dashboard/my-profile")
     } catch (error) {
       console.log("LOGIN API ERROR............", error)

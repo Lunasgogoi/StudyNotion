@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 import PrivateRoute from "./components/core/Auth/PrivateRoute";
 import OpenRoute from "./components/core/Auth/OpenRoute";
 import InstructorRoute from "./components/core/Auth/InstructorRoute";
+import AdminRoute from "./components/core/Auth/AdminRoute";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -27,6 +28,7 @@ import EditCourse from "./components/core/Dashboard/EditCourse"; // Don't forget
 import ViewCourse from "./pages/ViewCourse";
 import VideoDetails from "./components/core/ViewCourse/VideoDetails";
 import Search from "./pages/Search";
+import AdminDashboard from "./components/core/Dashboard/Admin/AdminDashboard";
 
 
 function App() {
@@ -64,25 +66,59 @@ function App() {
         </Route>
 
         {/* Dashboard Routes (Everything inside here gets the Sidebar) */}
-        <Route element={<Dashboard />}>
+        <Route
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        >
           <Route path="/dashboard/my-profile" element={<MyProfile />} />
           <Route path="/dashboard/settings" element={<Settings />} />
           <Route path="/dashboard/enrolled-courses" element={<EnrolledCourses />} />
           <Route path="/dashboard/cart" element={<Cart />} />
           <Route path="/dashboard/wishlist" element={<Wishlist />} />
 
+          <Route
+            path="/dashboard/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+
           {/* Instructor Only Routes */}
-          <Route path="/dashboard/instructor" element={<Instructor />} />
-          <Route path="/dashboard/my-courses" element={<MyCourses />} />
-          <Route path="/dashboard/edit-course/:courseId" element={<EditCourse />} />
+          <Route
+            path="/dashboard/instructor"
+            element={
+              <InstructorRoute>
+                <Instructor />
+              </InstructorRoute>
+            }
+          />
+          <Route
+            path="/dashboard/my-courses"
+            element={
+              <InstructorRoute>
+                <MyCourses />
+              </InstructorRoute>
+            }
+          />
+          <Route
+            path="/dashboard/edit-course/:courseId"
+            element={
+              <InstructorRoute>
+                <EditCourse />
+              </InstructorRoute>
+            }
+          />
           <Route
             path="/dashboard/add-course"
             element={
-              <PrivateRoute>
-                <InstructorRoute>
-                  <AddCourse />
-                </InstructorRoute>
-              </PrivateRoute>
+              <InstructorRoute>
+                <AddCourse />
+              </InstructorRoute>
             }
           />
         </Route>

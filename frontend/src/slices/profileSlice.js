@@ -1,9 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const getStoredUser = () => {
+  const storedUser = localStorage.getItem("user");
+  if (!storedUser || storedUser === "undefined") return null;
+
+  try {
+    return JSON.parse(storedUser);
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+};
+
 const profileSlice = createSlice({
   name: "profile",
   initialState: {
-    user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null,
+    user: getStoredUser(),
     profileData: null,
     loading: false,
   },
@@ -19,15 +31,6 @@ const profileSlice = createSlice({
     },
   },
 });
-
-const initialState = {
-  // Safely check if "user" exists and is NOT the string "undefined"
-  user: localStorage.getItem("user") && localStorage.getItem("user") !== "undefined"
-    ? JSON.parse(localStorage.getItem("user"))
-    : null,
-  loading: false,
-};
-
 
 export const { setUser, setProfileData, setLoading } = profileSlice.actions;
 export default profileSlice.reducer;

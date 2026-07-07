@@ -1,8 +1,6 @@
-// eslint-disable-next-line no-unused-vars
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
 import { FiUploadCloud } from "react-icons/fi"
-import { useSelector } from "react-redux"
 
 export default function Upload({
   name,
@@ -15,12 +13,9 @@ export default function Upload({
   required = true,
   video = false,
 }) {
-  // eslint-disable-next-line no-unused-vars
-  const { course } = useSelector((state) => state.course)
   const [selectedFile, setSelectedFile] = useState(null)
-  const [previewSource, setPreviewSource] = useState(
-    viewData ? viewData : editData ? editData : ""
-  )
+  const [filePreview, setFilePreview] = useState("")
+  const previewSource = filePreview || viewData || editData || ""
 
   const onDrop = (acceptedFiles) => {
     const file = acceptedFiles[0]
@@ -41,7 +36,7 @@ export default function Upload({
     const reader = new FileReader()
     reader.readAsDataURL(file)
     reader.onloadend = () => {
-      setPreviewSource(reader.result)
+      setFilePreview(reader.result)
     }
   }
 
@@ -52,6 +47,12 @@ export default function Upload({
   useEffect(() => {
     setValue(name, selectedFile)
   }, [selectedFile, setValue, name])
+
+  useEffect(() => {
+    if (!selectedFile && (editData || viewData)) {
+      setValue(name, editData || viewData)
+    }
+  }, [editData, name, selectedFile, setValue, viewData])
 
   return (
     <div className="flex flex-col space-y-2">
@@ -81,7 +82,7 @@ export default function Upload({
             <button
               type="button"
               onClick={() => {
-                setPreviewSource("")
+                setFilePreview("")
                 setSelectedFile(null)
                 setValue(name, null)
               }}

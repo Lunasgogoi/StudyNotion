@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "react-hot-toast"
 import { apiConnector } from "../../services/apiConnector"
@@ -14,7 +14,7 @@ const countryCodes = [
 
 const ContactUsForm = () => {
   const [loading, setLoading] = useState(false)
-  const { register, handleSubmit, reset, formState: { errors, isSubmitSuccessful } } = useForm()
+  const { register, handleSubmit, reset, formState: { isSubmitSuccessful } } = useForm()
 
   useEffect(() => {
     if (isSubmitSuccessful) {

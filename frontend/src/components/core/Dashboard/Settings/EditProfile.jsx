@@ -1,7 +1,6 @@
 import { useForm } from "react-hook-form"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
-import { toast } from "react-hot-toast"
 import { updateProfile } from "../../../../services/operations/settingsAPI"
 
 const genders = ["Male", "Female", "Non-Binary", "Prefer not to say", "Other"]
@@ -15,7 +14,6 @@ export default function EditProfile() {
     const {
         register,
         handleSubmit,
-        formState: { errors },
     } = useForm({
         defaultValues: {
             firstName: user?.firstName || "",

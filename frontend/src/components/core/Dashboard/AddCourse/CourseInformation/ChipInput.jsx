@@ -19,10 +19,13 @@ export default function ChipInput({
     register(name, { required: true, validate: (value) => value.length > 0 })
     
     // If we are in edit mode, populate the chips from the backend data
-    if (editCourse && course?.tag) {
-      // Assuming course.tag is an array of strings in your DB
+    if (editCourse && course?.courseTags) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setChips(typeof course.tag === "string" ? JSON.parse(course.tag) : course.tag)
+      setChips(
+        typeof course.courseTags === "string"
+          ? JSON.parse(course.courseTags)
+          : course.courseTags
+      )
     }
   }, [register, name, editCourse, course])
 

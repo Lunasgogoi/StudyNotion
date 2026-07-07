@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Chart, registerables } from "chart.js"
 import { Doughnut } from "react-chartjs-2"
 
@@ -7,17 +7,13 @@ Chart.register(...registerables)
 export default function InstructorChart({ courses }) {
   const [currChart, setCurrChart] = useState("students")
 
-  // Generate random colors for the chart segments
-  const generateRandomColors = (numColors) => {
-    const colors = []
-    for (let i = 0; i < numColors; i++) {
-      const color = `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(
-        Math.random() * 256
-      )}, ${Math.floor(Math.random() * 256)})`
-      colors.push(color)
-    }
-    return colors
-  }
+  const chartColors = useMemo(
+    () => courses.map((_, index) => {
+      const hue = (index * 137) % 360
+      return `hsl(${hue}, 72%, 55%)`
+    }),
+    [courses]
+  )
 
   // Data for Students Chart
   const chartDataStudents = {
@@ -25,7 +21,7 @@ export default function InstructorChart({ courses }) {
     datasets: [
       {
         data: courses.map((course) => course.totalStudentsEnrolled),
-        backgroundColor: generateRandomColors(courses.length),
+        backgroundColor: chartColors,
         borderWidth: 0,
       },
     ],
@@ -37,7 +33,7 @@ export default function InstructorChart({ courses }) {
     datasets: [
       {
         data: courses.map((course) => course.totalAmountGenerated),
-        backgroundColor: generateRandomColors(courses.length),
+        backgroundColor: chartColors,
         borderWidth: 0,
       },
     ],

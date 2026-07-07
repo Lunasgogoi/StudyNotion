@@ -2,8 +2,8 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
-import { resetCourseState, setStep } from "../../../../../slices/courseSlice"
-import { toast } from "react-hot-toast"
+import { resetCourseState, setCourse, setStep } from "../../../../../slices/courseSlice"
+import { editCourse } from "../../../../../services/operations/courseDetailsAPI"
 
 export default function PublishCourse() {
   const { register, handleSubmit, setValue, getValues } = useForm()
@@ -11,6 +11,7 @@ export default function PublishCourse() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { course } = useSelector((state) => state.course)
+  const { token } = useSelector((state) => state.auth)
   const [loading, setLoading] = useState(false)
 
   // When the component mounts, check if the course is already published
@@ -30,10 +31,12 @@ export default function PublishCourse() {
   }
 
   const handleCoursePublish = async () => {
+    if (!course?._id) return
+
     // Check if the user actually changed the status or just clicked save without doing anything
     if (
       (course?.status === "Published" && getValues("public") === true) ||
-      (course?.status === "Draft" && getValues("public") === false)
+      ((course?.status || "Draft") === "Draft" && getValues("public") === false)
     ) {
       // No changes made, just go to the courses page
       goToCourses()
@@ -42,16 +45,17 @@ export default function PublishCourse() {
 
     // If changes were made, construct the data for the API
     const formData = new FormData()
-    formData.append("courseId", course._id)
     const courseStatus = getValues("public") ? "Published" : "Draft"
     formData.append("status", courseStatus)
 
-    // TODO: Hit your Backend API here to update the course status
-    // setLoading(true)
-    // const result = await editCourseDetails(formData, token)
-    
-    toast.success(`Course successfully published as ${courseStatus}! (API pending)`)
-    goToCourses()
+    setLoading(true)
+    const result = await editCourse(formData, course._id, token)
+    setLoading(false)
+
+    if (result) {
+      dispatch(setCourse(result))
+      goToCourses()
+    }
   }
 
   const onSubmit = () => {
@@ -81,9 +85,9 @@ export default function PublishCourse() {
         {/* Buttons */}
         <div className="flex items-center justify-end gap-x-3">
           <button
-            disabled={loading}
             type="button"
             onClick={goBack}
+            disabled={loading}
             className="flex cursor-pointer items-center gap-x-2 rounded-md bg-richblack-300 py-[8px] px-[20px] font-semibold text-richblack-900"
           >
             Back

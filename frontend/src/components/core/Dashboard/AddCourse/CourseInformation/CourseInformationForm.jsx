@@ -1,13 +1,11 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-hot-toast'
-// eslint-disable-next-line no-unused-vars
 import { setStep, setCourse } from '../../../../../slices/courseSlice' // Adjust path as needed
 import { HiOutlineCurrencyRupee } from 'react-icons/hi'
 import ChipInput from './ChipInput'
-import { fetchCourseCategories, createCourse } from '../../../../../services/operations/courseDetailsAPI'
+import { fetchCourseCategories, createCourse, editCourse as updateCourse } from '../../../../../services/operations/courseDetailsAPI'
 import RequirementField from './RequirementField'
 import Upload from './Upload'
 
@@ -16,23 +14,16 @@ export default function CourseInformationForm() {
         register,
         handleSubmit,
         setValue,
-        // eslint-disable-next-line no-unused-vars
-        getValues,
         formState: { errors },
     } = useForm()
 
-    // eslint-disable-next-line no-unused-vars
     const dispatch = useDispatch()
-    const { course, editCourse } = useSelector((state) => state.course)
+    const { course, editCourse: isEditCourse } = useSelector((state) => state.course)
     const { token } = useSelector((state) => state.auth)
-    // eslint-disable-next-line no-unused-vars
     const [loading, setLoading] = useState(false)
-    // eslint-disable-next-line no-unused-vars
     const [courseCategories, setCourseCategories] = useState([])
 
-    // On mount, if we are editing, populate the form
     useEffect(() => {
-        // TODO: Fetch categories from backend here and setCourseCategories
         const fetchCategories = async () => {
             const result = await fetchCourseCategories()
             if (result) {
@@ -42,17 +33,16 @@ export default function CourseInformationForm() {
         fetchCategories()
 
 
-        if (editCourse && course) {
+        if (isEditCourse && course) {
             setValue("courseTitle", course.courseName)
             setValue("courseShortDesc", course.courseDescription)
             setValue("coursePrice", course.price)
-            // We will set the rest (Tags, Thumbnail, etc.) later
+            setValue("courseCategory", course.category?._id || course.category || "")
+            setValue("courseBenefits", course.whatYouWillLearn)
         }
-    }, [editCourse, course, setValue])
+    }, [isEditCourse, course, setValue])
 
     const onSubmit = async (data) => {
-        console.log("Form Data: ", data)
-        
         setLoading(true)
 
         // Create FormData for file upload
@@ -64,15 +54,26 @@ export default function CourseInformationForm() {
         formData.append("courseTags", JSON.stringify(data.courseTags))
         formData.append("category", data.courseCategory)
         formData.append("instructions", JSON.stringify(data.courseRequirements))
-        formData.append("thumbnailImage", data.courseImage)
+        if (data.courseImage) {
+            formData.append("thumbnailImage", data.courseImage)
+        }
 
-        // Call API to create course
-        const result = await createCourse(formData, token)
+        // Call appropriate API based on whether we're creating or editing
+        let result;
+        if (isEditCourse && course) {
+            result = await updateCourse(formData, course._id, token)
+        } else {
+            result = await createCourse(formData, token)
+        }
         
         if (result) {
             dispatch(setCourse(result))
-            dispatch(setStep(2))
-            toast.success("Course created successfully")
+            if (!isEditCourse) {
+                dispatch(setStep(2))
+            }
+            if (!isEditCourse) {
+                toast.success("Course created successfully")
+            }
         }
 
         setLoading(false)
@@ -194,6 +195,8 @@ export default function CourseInformationForm() {
                 register={register}
                 setValue={setValue}
                 errors={errors}
+                editData={isEditCourse ? course?.thumbnail : null}
+                required={!isEditCourse}
             />
 
             {/* Benefits of the course (Just a standard textarea) */}
@@ -225,8 +228,9 @@ export default function CourseInformationForm() {
 
             {/* Next Button */}
             <div className="flex justify-end gap-x-2">
-                {editCourse && (
+                {isEditCourse && (
                     <button
+                        type="button"
                         onClick={() => dispatch(setStep(2))}
                         disabled={loading}
                         className="flex cursor-pointer items-center gap-x-2 rounded-md bg-richblack-300 py-[8px] px-[20px] font-semibold text-richblack-900"
@@ -239,7 +243,7 @@ export default function CourseInformationForm() {
                     disabled={loading}
                     className="rounded-md bg-yellow-50 px-6 py-3 font-semibold text-richblack-900"
                 >
-                    {editCourse ? "Save Changes" : "Next"}
+                    {isEditCourse ? "Save Changes" : "Next"}
                 </button>
             </div>
 

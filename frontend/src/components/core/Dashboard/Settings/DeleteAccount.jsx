@@ -14,16 +14,7 @@ export default function DeleteAccount() {
 
   async function handleDeleteAccount() {
     try {
-      // TODO: Hit backend delete profile API
-      async function handleDeleteAccount() {
-        try {
-          // Call the API
-          dispatch(deleteProfile(token, navigate))
-        } catch (error) {
-            console.log("ERROR MESSAGE - ", error.message)
-        }
-      }
-      console.log("Account deleted")
+      await dispatch(deleteProfile(token, navigate))
     } catch (error) {
       console.log("ERROR MESSAGE - ", error.message)
     }

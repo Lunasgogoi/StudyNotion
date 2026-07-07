@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { FiUpload } from "react-icons/fi"
 import { useDispatch, useSelector } from "react-redux"
-import { toast } from "react-hot-toast"
 import { updateDisplayPicture } from "../../../../services/operations/settingsAPI"
 
 export default function ChangeProfilePicture() {

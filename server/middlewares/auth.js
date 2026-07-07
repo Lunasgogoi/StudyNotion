@@ -1,13 +1,11 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 
 //auth
 exports.auth = async (req, res, next) => {
     try {
         //fetch token from header
-        const token = req.cookies.token || 
-              req.header("Authorization")?.replace("Bearer ", "") || 
-              req.body.token;
+        const token = req.cookies?.token ||
+              req.header("Authorization")?.replace("Bearer ", "");
 
         //if token missing , then return response
         if (!token) {
@@ -21,7 +19,6 @@ exports.auth = async (req, res, next) => {
         
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            console.log("Decoded token: ", decoded);
             req.user = decoded;
 
         } catch (error) {

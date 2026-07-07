@@ -6,8 +6,12 @@ import { courseEndpoints, ratingsEndpoints } from "../apis"
 const { COURSE_CATEGORIES_API } = courseEndpoints
 const { GET_ALL_INSTRUCTOR_COURSES_API } = courseEndpoints
 const { CREATE_SECTION_API } = courseEndpoints
+const { UPDATE_SECTION_API } = courseEndpoints
+const { DELETE_SECTION_API } = courseEndpoints
 const { CREATE_COURSE_API } = courseEndpoints
 const { CREATE_SUBSECTION_API } = courseEndpoints
+const { UPDATE_SUBSECTION_API } = courseEndpoints
+const { DELETE_SUBSECTION_API } = courseEndpoints
 
 const getApiErrorMessage = (error, fallback) => (
   error?.response?.data?.message || error?.message || fallback
@@ -87,6 +91,64 @@ export const createSection = async (sectionName, courseId, token) => {
   return result
 }
 
+export const updateSection = async (sectionName, sectionId, token) => {
+  let result = null
+  try {
+    const response = await apiConnector(
+      "POST",
+      UPDATE_SECTION_API,
+      {
+        sectionName,
+        sectionId,
+      },
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    )
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Could not update section")
+    }
+
+    result = response?.data?.data
+  } catch (error) {
+    console.log("UPDATE_SECTION_API ERROR............", error)
+    if (!error.isAuthExpired) {
+      toast.error(getApiErrorMessage(error, "Could not update section"))
+    }
+  }
+  return result
+}
+
+export const deleteSection = async (sectionId, courseId, token) => {
+  let result = null
+  try {
+    const response = await apiConnector(
+      "POST",
+      DELETE_SECTION_API,
+      {
+        sectionId,
+        courseId,
+      },
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    )
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Could not delete section")
+    }
+
+    result = response?.data?.data
+  } catch (error) {
+    console.log("DELETE_SECTION_API ERROR............", error)
+    if (!error.isAuthExpired) {
+      toast.error(getApiErrorMessage(error, "Could not delete section"))
+    }
+  }
+  return result
+}
+
 export const createSubSection = async (formData, token) => {
   let result = null
   try {
@@ -112,6 +174,61 @@ export const createSubSection = async (formData, token) => {
   return result
 }
 
+export const updateSubSection = async (formData, token) => {
+  let result = null
+  try {
+    const response = await apiConnector(
+      "POST",
+      UPDATE_SUBSECTION_API,
+      formData,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    )
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Could not update lecture")
+    }
+
+    result = response?.data?.data
+  } catch (error) {
+    console.log("UPDATE_SUBSECTION_API ERROR............", error)
+    if (!error.isAuthExpired) {
+      toast.error(getApiErrorMessage(error, "Could not update lecture"))
+    }
+  }
+  return result
+}
+
+export const deleteSubSection = async (subSectionId, sectionId, token) => {
+  let result = null
+  try {
+    const response = await apiConnector(
+      "POST",
+      DELETE_SUBSECTION_API,
+      {
+        subSectionId,
+        sectionId,
+      },
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    )
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Could not delete lecture")
+    }
+
+    result = response?.data?.data
+  } catch (error) {
+    console.log("DELETE_SUBSECTION_API ERROR............", error)
+    if (!error.isAuthExpired) {
+      toast.error(getApiErrorMessage(error, "Could not delete lecture"))
+    }
+  }
+  return result
+}
+
 export const createCourse = async (courseData, token) => {
   let result = null
   try {
@@ -132,6 +249,32 @@ export const createCourse = async (courseData, token) => {
     console.log("CREATE_COURSE_API ERROR............", error)
     if (!error.isAuthExpired) {
       toast.error(getApiErrorMessage(error, "Could not create course"))
+    }
+  }
+  return result
+}
+
+export const editCourse = async (courseData, courseId, token) => {
+  let result = null
+  try {
+    const response = await apiConnector(
+      "PUT",
+      `${courseEndpoints.EDIT_COURSE_API}/${courseId}`,
+      courseData,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    )
+    
+    if (!response?.data?.success) {
+      throw new Error("Could Not Update Course")
+    }
+    result = response?.data?.data
+    toast.success("Course Updated Successfully")
+  } catch (error) {
+    console.log("EDIT_COURSE_API ERROR............", error)
+    if (!error.isAuthExpired) {
+      toast.error(getApiErrorMessage(error, "Could not update course"))
     }
   }
   return result
@@ -192,7 +335,6 @@ export const deleteCourse = async (data, token) => {
 
 export const fetchCourseDetails = async (courseId) => {
   const toastId = toast.loading("Loading...")
-  let result = null
   try {
     const response = await apiConnector("POST", courseEndpoints.COURSE_DETAILS_API, {
       courseId,
@@ -202,14 +344,14 @@ export const fetchCourseDetails = async (courseId) => {
     if (!response.data.success) {
       throw new Error(response.data.message)
     }
-    result = response.data
+    return response.data
   } catch (error) {
     console.log("COURSE_DETAILS_API API ERROR............", error)
-    result = error.response.data
+    return error.response?.data || null
     // toast.error(error.response.data.message);
+  } finally {
+    toast.dismiss(toastId)
   }
-  toast.dismiss(toastId)
-  return result
 }
 
 

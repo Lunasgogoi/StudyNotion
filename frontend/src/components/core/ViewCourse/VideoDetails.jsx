@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useLocation, useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 //import "video-react/dist/video-react.css"
 //import { Player, BigPlayButton } from "video-react"
 import { setCompletedLectures } from "../../../slices/viewCourseSlices"
@@ -15,22 +15,16 @@ export default function VideoDetails() {
   const { token } = useSelector((state) => state.auth)
   const { courseSectionData, courseEntireData, completedLectures } = useSelector((state) => state.viewCourse)
 
-  const [videoData, setVideoData] = useState([])
-  const [videoEnded, setVideoEnded] = useState(false)
+  const [endedVideoKey, setEndedVideoKey] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  // Find the exact video object based on the URL params whenever the URL changes
-  useEffect(() => {
-    if (!courseSectionData.length) return
-
+  const videoData = useMemo(() => {
     const section = courseSectionData.find((sec) => sec._id === sectionId)
-    const video = section?.subSection.find((sub) => sub._id === subSectionId)
-
-    if (video) {
-      setVideoData(video)
-      setVideoEnded(false)
-    }
+    return section?.subSection.find((sub) => sub._id === subSectionId) || null
   }, [courseSectionData, sectionId, subSectionId])
+
+  const currentVideoKey = `${sectionId}:${subSectionId}`
+  const videoEnded = endedVideoKey === currentVideoKey
 
   // Helper functions to check boundaries for Next/Prev buttons
   const isFirstVideo = () => {
@@ -113,7 +107,7 @@ export default function VideoDetails() {
             className="aspect-video w-full bg-richblack-900"
             controls
             playsInline
-            onEnded={() => setVideoEnded(true)}
+            onEnded={() => setEndedVideoKey(currentVideoKey)}
             src={videoData?.videoUrl}
           />
 
@@ -137,7 +131,7 @@ export default function VideoDetails() {
                   if (playerRef?.current) {
                     playerRef.current.currentTime = 0
                     playerRef.current?.play()
-                    setVideoEnded(false)
+                    setEndedVideoKey(null)
                   }
                 }}
                 className="text-xl font-bold text-richblack-5 hover:underline"

@@ -13,13 +13,14 @@ export default function MyCourses() {
 
   useEffect(() => {
     const fetchCourses = async () => {
+      if (!token) return
       const result = await fetchInstructorCourses(token)
       if (result) {
         setCourses(result)
       }
     }
     fetchCourses()
-  }, [])
+  }, [token])
 
   return (
     <div>

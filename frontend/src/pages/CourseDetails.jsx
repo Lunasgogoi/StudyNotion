@@ -35,7 +35,7 @@ const CourseDetails = () => {
       try {
         const res = await fetchCourseDetails(courseId)
         setResponse(res)
-      } catch (error) {
+      } catch {
         console.log("Could not fetch Course Details")
       }
     }

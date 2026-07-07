@@ -1,9 +1,21 @@
 // src/slices/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
+const getStoredToken = () => {
+  const storedToken = localStorage.getItem("token");
+  if (!storedToken || storedToken === "undefined") return null;
+
+  try {
+    return JSON.parse(storedToken);
+  } catch {
+    localStorage.removeItem("token");
+    return null;
+  }
+};
+
 const initialState = {
   // Check localStorage so the user stays logged in if they refresh the page
-  token: localStorage.getItem("token") ? JSON.parse(localStorage.getItem("token")) : null,
+  token: getStoredToken(),
   signupData: null,
   loading: false,
 };

@@ -4,13 +4,17 @@ import { FaPlus } from "react-icons/fa"
 import { MdEdit } from "react-icons/md"
 import { RiDeleteBin6Line } from "react-icons/ri"
 import { RxDropdownMenu } from "react-icons/rx"
+import { toast } from "react-hot-toast"
 import { useDispatch, useSelector } from "react-redux"
+import { setCourse } from "../../../../../slices/courseSlice"
+import { deleteSection, deleteSubSection } from "../../../../../services/operations/courseDetailsAPI"
 import SubSectionModal from "./SubSectionModel"
 import ConfirmationModal from "../../../../common/ConfirmationModal"
 
 
 export default function NestedView({ handleChangeEditSectionName }) {
     const { course } = useSelector((state) => state.course)
+    const { token } = useSelector((state) => state.auth)
     const dispatch = useDispatch()
 
     // State to manage the modals (we will build these modals next!)
@@ -21,15 +25,24 @@ export default function NestedView({ handleChangeEditSectionName }) {
     // State for the delete confirmation modal
     const [confirmationModal, setConfirmationModal] = useState(null)
 
-    const handleDeleteSection = (sectionId) => {
-        // TODO: Hit backend API to delete section
-        console.log("Deleting section:", sectionId)
+    const handleDeleteSection = async (sectionId) => {
+        const result = await deleteSection(sectionId, course._id, token)
+        if (result) {
+            dispatch(setCourse(result))
+            toast.success("Section deleted successfully")
+        }
         setConfirmationModal(null)
     }
 
-    const handleDeleteSubSection = (subSectionId, sectionId) => {
-        // TODO: Hit backend API to delete subsection
-        console.log("Deleting subsection:", subSectionId)
+    const handleDeleteSubSection = async (subSectionId, sectionId) => {
+        const result = await deleteSubSection(subSectionId, sectionId, token)
+        if (result) {
+            const updatedCourseContent = course.courseContent.map((section) =>
+                section._id === sectionId ? result : section
+            )
+            dispatch(setCourse({ ...course, courseContent: updatedCourseContent }))
+            toast.success("Lecture deleted successfully")
+        }
         setConfirmationModal(null)
     }
 
@@ -124,8 +137,6 @@ export default function NestedView({ handleChangeEditSectionName }) {
                 ))}
             </div>
 
-            {/* TODO: Add Confirmation Modal Component Here */}
-            {/* TODO: Add SubSectionModal Component Here (For Adding/Editing Videos) */}
             {/* Renders the Add SubSection Modal */}
             {addSubSection ? (
                 <SubSectionModal

@@ -14,8 +14,13 @@ export const courseEndpoints = {
   COURSE_CATEGORIES_API: BASE_URL + "/course/showAllCategories",
   GET_ALL_INSTRUCTOR_COURSES_API: BASE_URL + "/course/getInstructorCourses",
   CREATE_SECTION_API: BASE_URL + "/course/addSection",
+  UPDATE_SECTION_API: BASE_URL + "/course/updateSection",
+  DELETE_SECTION_API: BASE_URL + "/course/deleteSection",
   CREATE_COURSE_API: BASE_URL + "/course/createCourse",
+  EDIT_COURSE_API: BASE_URL + "/course/editCourse",
   CREATE_SUBSECTION_API: BASE_URL + "/course/addSubSection",
+  UPDATE_SUBSECTION_API: BASE_URL + "/course/updateSubSection",
+  DELETE_SUBSECTION_API: BASE_URL + "/course/deleteSubSection",
   DELETE_COURSE_API: BASE_URL + "/course/deleteCourse",
   COURSE_DETAILS_API: BASE_URL + "/course/getCourseDetails",
   UPDATE_COURSE_PROGRESS_API: BASE_URL + "/course/updateCourseProgress",
@@ -48,10 +53,21 @@ export const profileEndpoints = {
   GET_INSTRUCTOR_DATA_API: BASE_URL + "/profile/instructorDashboard",
 }
 
+export const paymentEndpoints = {
+  CAPTURE_PAYMENT_API: BASE_URL + "/payment/capturePayment",
+  VERIFY_PAYMENT_API: BASE_URL + "/payment/verifyPayment",
+}
+
 export const catalogData = {
   CATALOGPAGEDATA_API: BASE_URL + "/course/getCategoryPageDetails",
 }
 
 export const contactusEndpoint = {
   CONTACT_US_API: BASE_URL + "/reach/contact", // Adjust to match your backend route
+};
+
+export const adminEndpoints = {
+  ADMIN_SUMMARY_API: BASE_URL + "/admin/summary",
+  ADMIN_USERS_API: BASE_URL + "/admin/users",
+  ADMIN_COURSES_API: BASE_URL + "/admin/courses",
 };

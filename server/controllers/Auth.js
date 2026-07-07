@@ -32,8 +32,6 @@ exports.sendotp = async (req, res) => {
             lowerCaseAlphabets: false,
         });
 
-        console.log("OTP generated:", otp);
-
         // check unique OTP
         let result = await OTP.findOne({ otp });
 
@@ -52,7 +50,6 @@ exports.sendotp = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "OTP sent successfully",
-            otp, // remove in production
         });
 
     } catch (error) {
@@ -76,7 +73,7 @@ exports.signup = async (req, res) => {
             lastName,
             password,
             confirmPassword,
-            accountType,
+            accountType = "User",
             contactNumber,
             otp,
         } = req.body;
@@ -93,6 +90,13 @@ exports.signup = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "Passwords do not match",
+            });
+        }
+
+        if (!["User", "Instructor"].includes(accountType)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid account type",
             });
         }
 
@@ -145,11 +149,14 @@ exports.signup = async (req, res) => {
             additionalDetails: profileDetails._id,
             image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`,
         });
+        const userData = user.toObject();
+        delete userData.password;
+        delete userData.token;
 
         return res.status(200).json({
             success: true,
             message: "User registered successfully",
-            user,
+            user: userData,
         });
 
     } catch (error) {
@@ -196,18 +203,21 @@ exports.login = async (req, res) => {
                 expiresIn: "2h",
             });
 
-            user.token = token;
-            user.password = undefined;
+            const userData = user.toObject();
+            delete userData.password;
+            delete userData.token;
 
             const options = {
                 expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
                 httpOnly: true,
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+                secure: process.env.NODE_ENV === "production",
             };
 
             return res.cookie("token", token, options).status(200).json({
                 success: true,
                 token,
-                user,
+                user: userData,
                 message: "Login successful",
             });
 

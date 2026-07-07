@@ -5,7 +5,7 @@ import { IoAddCircleOutline } from "react-icons/io5"
 import { MdNavigateNext } from "react-icons/md"
 import { useDispatch, useSelector } from "react-redux"
 import { setCourse, setEditCourse, setStep } from "../../../../../slices/courseSlice"
-import { createSection } from "../../../../../services/operations/courseDetailsAPI"
+import { createSection, updateSection } from "../../../../../services/operations/courseDetailsAPI"
 import NestedView from "./NestedView"
 
 export default function CourseBuilderForm() {
@@ -32,11 +32,21 @@ export default function CourseBuilderForm() {
     }
 
     setLoading(true)
-    const result = await createSection(data.sectionName, course._id, token)
+    const result = editSectionName
+      ? await updateSection(data.sectionName, editSectionName, token)
+      : await createSection(data.sectionName, course._id, token)
     
     if (result) {
-      dispatch(setCourse(result))
-      toast.success("Section created successfully")
+      if (editSectionName) {
+        const updatedCourseContent = course.courseContent.map((section) =>
+          section._id === editSectionName ? result : section
+        )
+        dispatch(setCourse({ ...course, courseContent: updatedCourseContent }))
+        toast.success("Section updated successfully")
+      } else {
+        dispatch(setCourse(result))
+        toast.success("Section created successfully")
+      }
       setValue("sectionName", "")
       setEditSectionName(null)
     }

@@ -10,6 +10,7 @@ const {
     getAllCourses,
     getCourseDetails,
     getInstructorCourses,
+    editCourse,
 } = require("../controllers/Course");
 
 const { deleteCourse } = require("../controllers/Course")
@@ -82,6 +83,9 @@ const {
 
 // Courses can only be created by instructors
 router.post("/createCourse", auth, isInstructor, createCourse);
+
+// Edit an existing course (only instructor who created it)
+router.put("/editCourse/:courseId", auth, isInstructor, editCourse);
 
 // Add a Section to a Course
 router.post("/addSection", auth, isInstructor, createSection);

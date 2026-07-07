@@ -1,5 +1,9 @@
 const Category = require("../models/Category");
 
+const publicCourseMatch = {
+    $or: [{ status: "Published" }, { status: { $exists: false } }],
+};
+
 // createCategory handler function
 exports.createCategory = async (req, res) => {
     try {
@@ -50,7 +54,10 @@ exports.createCategory = async (req, res) => {
 exports.getAllCategories = async (req, res) => {
     try {
         const allCategories = await Category.find({})
-            .populate("courses");
+            .populate({
+                path: "courses",
+                match: publicCourseMatch,
+            });
 
         return res.status(200).json({
             success: true,
@@ -74,6 +81,7 @@ exports.categoryPageDetails = async (req, res) => {
 
         const coursePopulate = {
             path: "courses",
+            match: publicCourseMatch,
             populate: [
                 {
                     path: "ratingsAndReviews",

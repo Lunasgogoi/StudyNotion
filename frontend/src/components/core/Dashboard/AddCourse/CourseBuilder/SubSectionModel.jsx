@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast"
 import { RxCross2 } from "react-icons/rx"
 import { useDispatch, useSelector } from "react-redux"
 import { setCourse } from "../../../../../slices/courseSlice"
-import { createSubSection } from "../../../../../services/operations/courseDetailsAPI"
+import { createSubSection, updateSubSection } from "../../../../../services/operations/courseDetailsAPI"
 import Upload from "../CourseInformation/Upload" // Reusing the drag-and-drop component!
 
 export default function SubSectionModal({
@@ -47,12 +47,38 @@ export default function SubSectionModal({
     return false
   }
 
-  const handleEditSubsection = async () => {
-    const currentValues = getValues()
-    // TODO: Construct FormData and hit your EDIT API here
-    // Example: const result = await updateSubSection({ ...currentValues, subSectionId: modalData._id })
-    toast.success("Lecture updated successfully (API pending)")
-    setModalData(null)
+  const handleEditSubsection = async (data) => {
+    const formData = new FormData()
+    formData.append("subSectionId", modalData._id)
+    formData.append("title", data.lectureTitle)
+    formData.append("description", data.lectureDesc)
+    formData.append("timeDuration", modalData.timeDuration || "0")
+
+    if (data.lectureVideo && data.lectureVideo !== modalData.videoUrl) {
+      formData.append("video", data.lectureVideo)
+    }
+
+    setLoading(true)
+    const result = await updateSubSection(formData, token)
+
+    if (result) {
+      const updatedCourseContent = course.courseContent.map((section) => {
+        if (section._id !== modalData.sectionId) return section
+
+        return {
+          ...section,
+          subSection: section.subSection.map((subSection) =>
+            subSection._id === result._id ? result : subSection
+          ),
+        }
+      })
+
+      dispatch(setCourse({ ...course, courseContent: updatedCourseContent }))
+      toast.success("Lecture updated successfully")
+      setModalData(null)
+    }
+
+    setLoading(false)
   }
 
   const onSubmit = async (data) => {
@@ -62,7 +88,7 @@ export default function SubSectionModal({
       if (!isFormUpdated()) {
         toast.error("No changes made to the form")
       } else {
-        handleEditSubsection()
+        await handleEditSubsection(data)
       }
       return
     }
@@ -121,6 +147,7 @@ export default function SubSectionModal({
             register={register}
             setValue={setValue}
             errors={errors}
+            required={!edit}
             video={true} 
             viewData={view ? modalData.videoUrl : null}
             editData={edit ? modalData.videoUrl : null}

@@ -1,12 +1,39 @@
 const SubSection = require("../models/SubSection");
 const Section = require("../models/Section");
+const Course = require("../models/Course");
 const { uploadImageToCloudinary } = require("../utils/imageUploader");
+
+const isInstructorOwner = (course, instructorId) => {
+    return course?.instructor?.toString() === instructorId?.toString();
+};
+
+const findOwnedCourseBySection = async (sectionId, instructorId) => {
+    const course = await Course.findOne({ courseContent: sectionId });
+
+    if (!course) {
+        return { status: 404, message: "Course section not found" };
+    }
+
+    if (!isInstructorOwner(course, instructorId)) {
+        return { status: 403, message: "You are not allowed to modify this course" };
+    }
+
+    return { course };
+};
+
+const findOwnedCourseBySubSection = async (subSectionId, instructorId) => {
+    const section = await Section.findOne({ subSection: subSectionId });
+
+    if (!section) {
+        return { status: 404, message: "Sub-section not found" };
+    }
+
+    const ownership = await findOwnedCourseBySection(section._id, instructorId);
+    return { ...ownership, section };
+};
 
 exports.createSubSection = async (req, res) => {
     try {
-
-        // console.log("Request body:", req.body);
-        console.log("FILES:", req.files);
 
         //fetch data from req body
         const { sectionId, title, timeDuration, description } = req.body;
@@ -19,6 +46,14 @@ exports.createSubSection = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required",
+            });
+        }
+
+        const ownership = await findOwnedCourseBySection(sectionId, req.user.id);
+        if (!ownership.course) {
+            return res.status(ownership.status).json({
+                success: false,
+                message: ownership.message,
             });
         }
 
@@ -75,21 +110,39 @@ exports.updateSubSection = async (req, res) => {
         const { subSectionId, title, timeDuration, description } = req.body;
 
         //validation
-        if (!subSectionId || !title || !timeDuration || !description) {
+        if (!subSectionId || !title || timeDuration === undefined || timeDuration === null || !description) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required",
             });
         }
 
+        const ownership = await findOwnedCourseBySubSection(subSectionId, req.user.id);
+        if (!ownership.course) {
+            return res.status(ownership.status).json({
+                success: false,
+                message: ownership.message,
+            });
+        }
+
+        const updateData = {
+            title: title.trim(),
+            timeDuration,
+            description: description.trim(),
+        };
+
+        if (req.files?.video) {
+            const uploadDetails = await uploadImageToCloudinary(
+                req.files.video,
+                process.env.FOLDER_NAME
+            );
+            updateData.videoUrl = uploadDetails.secure_url;
+        }
+
         //update sub-section
         const updatedSubSection = await SubSection.findByIdAndUpdate(
             { _id: subSectionId },
-            {
-                title: title,
-                timeDuration: timeDuration,
-                description: description,
-            },
+            updateData,
             { new: true }
         );
 
@@ -121,6 +174,21 @@ exports.deleteSubSection = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required",
+            });
+        }
+
+        const ownership = await findOwnedCourseBySubSection(subSectionId, req.user.id);
+        if (!ownership.course) {
+            return res.status(ownership.status).json({
+                success: false,
+                message: ownership.message,
+            });
+        }
+
+        if (ownership.section._id.toString() !== sectionId.toString()) {
+            return res.status(400).json({
+                success: false,
+                message: "Sub-section does not belong to the provided section",
             });
         }
 

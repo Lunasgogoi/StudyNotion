@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { getUserEnrolledCourses } from "../../../services/operations/profileAPI"
@@ -42,7 +42,7 @@ const getCourseDuration = (course) => {
         const response = await getUserEnrolledCourses(token)
         // Ensure we are setting an array, even if empty
         setEnrolledCourses(response || [])
-      } catch (error) {
+      } catch {
         console.log("Unable to Fetch Enrolled Courses")
       }
       setLoading(false)
